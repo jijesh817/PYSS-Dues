@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PYSS Fund – Pending Dues</title>
 <style>
-:root{--bg:#f4f8fb;--card:#fff;--ink:#1f2a37;--mut:#64748b;--line:#e2e8f0;--acc:#2563eb;--accs:#eff6ff}
+:root{--bg:#f4f8fb;--card:#fff;--ink:#1f2a37;--mut:#64748b;--line:#e2e8f0;--acc:#2563eb;--accs:#eff6ff;--ok:#16a34a;--oks:#f0fdf4}
 *{box-sizing:border-box}html{color-scheme:light}body{margin:0;font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
 .wrap{max-width:760px;margin:0 auto;padding:16px 14px 60px}
 .hero{background:linear-gradient(135deg,#dbeafe,#e0f2fe 60%,#ecfdf5);border:1px solid #cfe0f5;border-radius:16px;padding:14px}
@@ -10,9 +10,11 @@ h1{font-size:20px;margin:0 0 2px;color:#1e3a8a}.sub{color:var(--mut);font-size:1
 .kpi{background:#fff;border-radius:12px;padding:10px;border:1px solid var(--line)}
 .kpi b{display:block;font-size:19px;font-variant-numeric:tabular-nums}.kpi span{font-size:12px;color:var(--mut)}
 .kpi.k1 b{color:#dc2626}.kpi.k2 b{color:#d97706}.kpi.k3 b{color:#16a34a}
+.kpi small{display:block;font-size:11px;color:var(--ok);margin-top:2px;font-weight:600}
+.status{font-size:12px;color:var(--mut);margin-top:8px}.status.warn{color:#b45309}
 .legend{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
 .lg{font-size:12px;padding:3px 9px;border-radius:999px;font-weight:600}
-.tabs{display:flex;gap:6px;position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:5}
+.tabs{display:flex;gap:6px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:10px 0;z-index:5}
 .tab{flex:1;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:9px 6px;font-size:14px;font-weight:600;cursor:pointer}
 .tab.on{background:var(--acc);color:#fff;border-color:var(--acc);box-shadow:0 2px 8px rgba(37,99,235,.25)}
 input[type=search]{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:15px;margin:2px 0 10px}
@@ -28,67 +30,151 @@ input[type=search]{width:100%;padding:10px 12px;border-radius:10px;border:1px so
 .r1{display:flex;justify-content:space-between;align-items:center;gap:8px}.nm{font-weight:600}
 .due{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;padding:3px 10px;border-radius:999px;font-size:14px}
 .r2{font-size:12px;color:var(--mut);margin-top:3px}
-.yrs{display:none;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:8px}.row.x .yrs{display:grid}
+.newp{display:inline-block;font-size:11px;font-weight:700;color:var(--ok);background:var(--oks);border:1px solid #bbf7d0;border-radius:999px;padding:1px 7px;margin-left:4px;white-space:nowrap}
+.det{display:none;margin-top:8px;cursor:default}.row.x .det{display:block}
+.yrs{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
 .yr{font-size:11px;text-align:center;border-radius:6px;padding:4px 2px;background:#dcfce7;color:#166534}
 .yr b{display:block;font-size:12px;font-variant-numeric:tabular-nums}
 .yr.no{background:#fee2e2;color:#991b1b}.yr.na{background:#f1f5f9;color:#94a3b8}
+.pays{margin-top:8px;border:1px solid #bbf7d0;background:var(--oks);border-radius:10px;padding:6px 10px}
+.pays h4{margin:2px 0 4px;font-size:12px;color:#166534;text-transform:uppercase;letter-spacing:.04em}
+.pl{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0;border-top:1px dashed #bbf7d0}.pl:first-of-type{border-top:0}
+.pl .pd{color:var(--mut);white-space:nowrap;font-variant-numeric:tabular-nums}.pl .pn{flex:1;min-width:0;color:var(--mut);overflow-wrap:anywhere}
+.pl .pa{font-weight:700;color:#166534;font-variant-numeric:tabular-nums;white-space:nowrap}
+.x-del{border:0;background:none;color:#b91c1c;font-size:12px;cursor:pointer;padding:2px 4px;font-weight:600}
+.addbtn{margin-top:8px;border:1px solid #86efac;background:#fff;color:#166534;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:700;cursor:pointer}
+.pform{margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px}
+.pform label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--mut);min-width:0}
+.pform input{font:inherit;font-size:15px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;color:var(--ink);background:#fff;width:100%;min-width:0}
+.pform .full{grid-column:1/-1}
+.pform .prev{grid-column:1/-1;font-size:12px;color:var(--mut)}
+.pform .bts{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
+.save{border:0;background:var(--ok);color:#fff;border-radius:8px;padding:8px 16px;font-weight:700;font-size:14px;cursor:pointer}
+.save:disabled{opacity:.6;cursor:default}
+.cancel{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer}
+.ferr{grid-column:1/-1;font-size:12px;color:#b91c1c}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .b0{background:#dcfce7;color:#166534}.b1{background:#fef9c3;color:#854d0e}.b2{background:#ffedd5;color:#9a3412}.b3{background:#fecaca;color:#991b1b}.b4{background:#dc2626;color:#fff}
 .row.b0r{border-left-color:#22c55e}.row.b1r{border-left-color:#eab308}.row.b2r{border-left-color:#f97316}.row.b3r{border-left-color:#ef4444}.row.b4r{border-left-color:#b91c1c}
 .act{display:flex;justify-content:flex-end;padding:8px 14px;border-top:1px solid var(--line);background:#f8fafc}
 .btn{border:1px solid #bfdbfe;background:var(--accs);color:var(--acc);border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer}
 .note{font-size:12px;color:var(--mut);background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:16px}
-.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#1e3a8a;color:#fff;padding:8px 14px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#1e3a8a;color:#fff;padding:8px 14px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.on{opacity:1}
 .sortbar{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--mut);margin-bottom:8px}
 .sortbar select{background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:5px}
-</style></head><body><div class="wrap">
-<div class="hero"><h1>PYSS Fund – Pending Dues</h1><div class="sub">Pending list as on 25 Oct 2026 · tap a group to open, tap a name for year-wise payments</div>
-<div class="kpis"><div class="kpi k1"><b id="kTot"></b><span>Total due</span></div><div class="kpi k2"><b id="kMem"></b><span>Members with dues</span></div><div class="kpi k3"><b id="kPaid"></b><span>Collected so far</span></div></div></div><div class="legend"><span class="lg b4">Above 6,000</span><span class="lg b3">4,001–6,000</span><span class="lg b2">2,001–4,000</span><span class="lg b1">Up to 2,000</span><span class="lg b0">Cleared</span></div>
+@media (max-width:420px){.kpi b{font-size:16px}.yrs{grid-template-columns:repeat(3,1fr)}}
+@media (prefers-reduced-motion:reduce){.chev,.toast{transition:none}}
+</style></head><body>
+<div class="wrap">
+<div class="hero"><h1>PYSS Fund – Pending Dues</h1><div class="sub">Base list as on 25 Oct 2026, plus payments recorded here since then · tap a group to open, tap a name for details</div>
+<div class="kpis"><div class="kpi k1"><b id="kTot"></b><span>Net due</span></div><div class="kpi k2"><b id="kMem"></b><span>Members with dues</span></div><div class="kpi k3"><b id="kPaid"></b><span>Collected so far</span><small id="kNew" hidden></small></div></div>
+<div class="status" id="st">Loading recorded payments…</div></div>
+<div class="legend"><span class="lg b4">Above 6,000</span><span class="lg b3">4,001–6,000</span><span class="lg b2">2,001–4,000</span><span class="lg b1">Up to 2,000</span><span class="lg b0">Cleared</span></div>
 <div class="tabs"><button class="tab on" data-v="country">By Country</button><button class="tab" data-v="balance">By Balance</button><button class="tab" data-v="all">All</button></div>
 <input type="search" id="q" placeholder="Search name, ID or block…">
 <div class="sortbar" id="sb">Sort names by <select id="sort"><option value="due">Highest due first</option><option value="name">Name A–Z</option><option value="sn">S/N</option></select></div>
 <div id="list"></div>
-<div class="note"><b>How due is worked out:</b> dues start from the first year a member paid; if they have not paid yet, from their joining year. The first two years are 2,400 each, then 2,000 per year, up to 2026. Due = expected − total paid so far. Payments are counted as a total, so an extra payment in one year offsets a short one in another.<br><br><b>Check:</b> ID 107 appears twice in the source list (Fidal Castro, S/N 38 and Sukesh Manthal, S/N 78).</div>
+<div class="note"><b>How due is worked out:</b> dues start from the first year a member paid; if they have not paid yet, from their joining year. The first two years are 2,400 each, then 2,000 per year, up to 2026. Due = expected − total paid so far. Payments are counted as a total, so an extra payment in one year offsets a short one in another.<br><br><b>Recording a payment:</b> tap a member's name, then <b>Record payment</b>. Enter the amount and date, and save. The amount is added to what they have paid, and their due and all the totals update for everyone who opens this page. Only the page owner and editors can record or remove payments.<br><br><b>Check:</b> ID 107 appears twice in the source list (Fidal Castro, S/N 38 and Sukesh Manthal, S/N 78).</div>
 </div><div class="toast" id="toast"></div>
 <script>
 const RAW=[[1, "045", "RAHUL K.S", "VYTHIRI", "Bahrain", 2020, [2400, 2400, 0, 0, 0, 0], 4800, 12800, 8000, 2021], [2, "048", "RAHUL T P", "KNR", "UAE", 2020, [2400, 2400, 0, 0, 0, 0], 4800, 12800, 8000, 2021], [3, "057", "SANGEETH MONDI KITTA", "CVA", "UAE", 2020, [2400, 2400, 0, 0, 0, 0], 4800, 12800, 8000, 2021], [4, "069", "Srubinraj mangali", "CVA", "Oman", 2020, [2400, 1200, 0, 0, 0, 0], 3600, 12800, 9200, 2021], [5, "078", "KRIPAL", "KNR", "Oman", 2021, [0, 2400, 0, 0, 0, 0], 2400, 10800, 8400, 2022], [6, "091", "PREMJITH", "KNR", "UAE", 2023, [0, 0, 0, 0, 0, 0], 0, 8800, 8800, 2023], [7, "093", "SREERAJ", "CVA", "UAE", 2023, [0, 0, 0, 0, 0, 0], 0, 8800, 8800, 2023], [8, "008", "BAL ANOOP", "CVA", "UAE", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [9, "010", "BIJU BALAN", "TLY", "Oman", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [10, "015", "DILEEP THALLI", "CVA", "Qatar", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [11, "016", "DIPIN KAPOOR", "CVA", "UAE", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [12, "019", "Gopalakrishnan Manoj", "VYTHIRI", "Bahrain", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [13, "022", "JITHIN MANTHAL", "KNR", "Qatar", 2020, [2400, 2400, 2400, 0, 0, 0], 7200, 12800, 5600, 2021], [14, "023", "KOLLU SANTHOSH", "CLT", "UAE", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [15, "026", "MANI PAMMAN", "CVA", "Bahrain", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [16, "027", "MANOJ", "KTBA", "UAE", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [17, "032", "Murali Manthal", "CLT", "UAE", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [18, "049", "RAJANEESH", "KTBA", "UAE", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [19, "050", "RAJESH WEST HILL", "CLT", "Saudi Arabia", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [20, "052", "RAJESH KAPOOR", "CLT", "Saudi Arabia", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [21, "054", "RAMAKRISHNAN P", "KNR", "Oman", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [22, "060", "SARATH MANGALI", "MNVDY", "Bahrain", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [23, "068", "SOORAJ GOVIND", "KTBA", "Saudi Arabia", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [24, "072", "SURESH MANI", "KTBA", "Oman", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [25, "073", "THIRU PATHI DINOOP", "CVA", "Saudi Arabia", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [26, "079", "NIJIL", "CVA", "UAE", 2021, [0, 2400, 2400, 0, 0, 0], 4800, 10800, 6000, 2022], [27, "082", "MITHUN CHANDRAN", "KTBA", "Germany", 2022, [0, 2400, 2400, 0, 0, 0], 4800, 10800, 6000, 2022], [28, "084", "SRUJITH B", "CVA", "Bahrain", 2022, [0, 0, 2400, 0, 0, 0], 2400, 8800, 6400, 2023], [29, "092", "AKSHAY THALLI", "CVA", "UAE", 2023, [0, 0, 2400, 0, 0, 0], 2400, 8800, 6400, 2023], [30, "094", "SHARANJITH", "KNR", "Canada", 2023, [0, 0, 2000, 0, 0, 0], 2000, 8800, 6800, 2023], [31, "095", "AMAL RAJ", "KNR", "Bahrain", 2024, [0, 0, 0, 0, 0, 0], 0, 6800, 6800, 2024], [32, "096", "ASHWINRAJ", "KNR", "UAE", 2024, [0, 0, 0, 0, 0, 0], 0, 6800, 6800, 2024], [33, "097", "SATHEESH", "KTBA", "Saudi Arabia", 2024, [0, 0, 0, 0, 0, 0], 0, 6800, 6800, 2024], [34, "099", "DEEPAK MANOHARAN", "CLT", "UAE", 2024, [0, 0, 0, 0, 0, 0], 0, 6800, 6800, 2024], [35, "100", "AJITH", "KTBA", "Oman", 2024, [0, 0, 0, 0, 0, 0], 0, 6800, 6800, 2024], [36, "101", "AKSHAY POTHIKKA", "KNR", "UAE", 2024, [0, 0, 0, 0, 0, 0], 0, 6800, 6800, 2024], [37, "103", "SANIL THALLI", "CVA", "UAE", 2024, [0, 0, 0, 0, 0, 0], 0, 6800, 6800, 2024], [38, "107", "FIDAL CASTRO", "CLT", "UAE", 2025, [0, 0, 0, 0, 0, 0], 0, 4800, 4800, 2025], [39, "108", "SOORAJ MURALI", "CLT", "UAE", 2025, [0, 0, 0, 0, 0, 0], 0, 4800, 4800, 2025], [40, "003", "Anand Coonoor", "COONOOR", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [41, "004", "ANIL (PAINT)", "KTBA", "UAE", 2020, [2400, 2504, 2000, 2000, 0, 0], 8904, 12800, 3896, 2021], [42, "006", "ANILKUMAR CHAMI", "TLY", "Oman", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [43, "011", "BIJURAJ T K", "KNR", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [44, "012", "Binoy Kollu", "CVA", "Kuwait", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [45, "014", "DHEEKSHITH KAPOOR", "CVA", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [46, "018", "GIRISHAN CHAMI", "MNVDY", "Australia", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [47, "024", "Krijith makkali krishnan", "MNVDY", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [48, "028", "MANTHAL SREENIVASAN", "CLT", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [49, "031", "MONISH MOHANAN", "KNR", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [50, "034", "Nigeesh Mondikitta", "CVA", "Qatar", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [51, "035", "NIKETH", "KNR", "Canada", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [52, "038", "PRABIN KRISHNA", "KNR", "Qatar", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [53, "040", "PRASHOBH MANGANELLI", "KNR", "Kuwait", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [54, "041", "PRASOBH MANIYAN", "TLY", "Saudi Arabia", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [55, "043", "PRAVEEN POOSARI", "CVA", "Saudi Arabia", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [56, "047", "RAHUL RAJ", "KTBA", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [57, "051", "RAJESH BAL", "CLT", "Saudi Arabia", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [58, "059", "SANTHOSH THALLI", "CLT", "UAE", 2020, [2400, 2400, 2000, 1000, 0, 0], 7800, 12800, 5000, 2021], [59, "061", "SARATH RAMESHAN", "KTBA", "Saudi Arabia", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [60, "062", "SHAJI . P", "CLT", "UAE", 2020, [2400, 2400, 2000, 400, 0, 0], 7200, 12800, 5600, 2021], [61, "064", "SHIBU LAKSHMANAN", "KNR", "Oman", 2020, [2400, 2400, 2000, 400, 0, 0], 7200, 12800, 5600, 2021], [62, "065", "SHYJU . G", "TLY", "Qatar", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [63, "066", "SHYJU . P", "CLT", "Saudi Arabia", 2020, [2400, 2400, 2000, 400, 0, 0], 7200, 12800, 5600, 2021], [64, "067", "SREEJITH MN", "KNR", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [65, "070", "SUJITH", "KTBA", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [66, "071", "SUNIL PAPPA", "CVA", "Saudi Arabia", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [67, "075", "VINOD KUMAR", "MNVDY", "Kuwait", 2020, [2400, 2600, 2000, 2000, 0, 0], 9000, 12800, 3800, 2021], [68, "076", "VISHNU SURENDRAN", "VYTHIRI", "Kuwait", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [69, "077", "YOGESH PANAMARATH", "KNR", "Kuwait", 2020, [2400, 2400, 2000, 1000, 0, 0], 7800, 12800, 5000, 2021], [70, "081", "SAJESH", "KNR", "Saudi Arabia", 2021, [0, 2500, 2401, 1900, 0, 0], 6801, 10800, 3999, 2022], [71, "083", "SOORAJ SUNIL", "CLT", "Canada", 2022, [0, 2400, 2400, 2001, 0, 0], 6801, 10800, 3999, 2022], [72, "088", "NIKHIL PV", "MNVDY", "UAE", 2022, [0, 0, 2400, 2400, 0, 0], 4800, 8800, 4000, 2023], [73, "089", "AKSHAY MK", "CVA", "Qatar", 2022, [0, 0, 2400, 2400, 0, 0], 4800, 8800, 4000, 2023], [74, "098", "JISHNU", "KTBA", "UAE", 2024, [0, 0, 0, 2400, 0, 0], 2400, 6800, 4400, 2024], [75, "102", "JIJU MOHANAN GURUVAYOO", "R CLT", "Germany", 2024, [0, 0, 0, 2400, 0, 0], 2400, 6800, 4400, 2024], [76, "105", "AKSHAY M N", "KNR", "Slovakia", 2024, [0, 0, 0, 2400, 0, 0], 2400, 6800, 4400, 2024], [77, "106", "RIJIN DEV", "KTBA", "UAE", 2024, [0, 0, 0, 2400, 0, 0], 2400, 6800, 4400, 2024], [78, "107", "SUKESH MANTHAL", "KNR", "Saudi Arabia", 2020, [1200, 3600, 0, 2000, 0, 0], 6800, 12800, 6000, 2021], [79, "001", "AKHIL MAGAALI SELVARAJ", "MNVDY", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [80, "002", "AKHIL RAJAN", "KTBA", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [81, "005", "ANIL KUMAR (Ananda)", "MADIKERI", "Kuwait", 2020, [2400, 2000, 2400, 2000, 2000, 0], 10800, 12800, 2000, 2021], [82, "007", "ASHOK THALAKONDAN", "CVA", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [83, "009", "BALU P", "KTBA", "Kuwait", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [84, "013", "BIPIN KRISHNA", "KNR", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [85, "017", "GANESH BAL", "KTBA", "Qatar", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [86, "020", "GOUTHAM", "CLT", "Oman", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [87, "021", "JIJESH BALAN", "KTBA", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [88, "025", "MANEESH BALAN", "TLY", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [89, "029", "Mithin Manthal", "KNR", "Oman", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [90, "030", "MITHUN RAJ", "MNVDY", "Seaman (at sea)", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [91, "033", "NIDESH", "CLT", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [92, "036", "PATHI DEEPESH", "KNR", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [93, "037", "Ramakrishnan", "COONOOR", "USA", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [94, "039", "PRADEESH ( KAAKU )", "KNR", "Canada", 2020, [2400, 2600, 2000, 2000, 2000, 0], 11000, 12800, 1800, 2021], [95, "042", "PRASOON MN", "KNR", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [96, "044", "RAHUL BRIKAL", "KNR", "UAE", 2020, [2400, 2401, 2000, 2000, 2000, 0], 10801, 12800, 1999, 2021], [97, "046", "Rahul Narayanan", "MNVDY", "Kuwait", 2020, [2400, 2400, 2000, 2000, 2000, 2000], 12800, 12800, 0, 2021], [98, "053", "RAJESH M K", "MNVDY", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [99, "055", "RAMESH C R", "MNVDY", "Kuwait", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [100, "056", "Ramesh Palakkad", "PKD", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [101, "058", "SANOJ MONDIKITTA", "CVA", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [102, "063", "SHAMMYDAS THALLI", "CVA", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [103, "074", "UMESH MANTHAL", "KNR", "Qatar", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [104, "080", "RAJESH KUMAR VENGAI", "KNR", "Kuwait", 2020, [0, 2400, 2400, 2000, 2000, 2000], 10800, 10800, 0, 2022], [105, "085", "RAJANEESH THALLI", "CVA", "Germany", 2022, [0, 0, 2400, 2400, 2000, 0], 6800, 8800, 2000, 2023], [106, "086", "RAHUL S/O BABU", "CVA", "Saudi Arabia", 2022, [0, 0, 2400, 2400, 2400, 0], 7200, 8800, 1600, 2023], [107, "087", "YADHU Krishnan", "CLT", "Qatar", 2022, [0, 0, 2000, 2000, 2400, 0], 6400, 8800, 2400, 2023], [108, "090", "MADHU", "CVA", "Qatar", 2022, [0, 0, 2400, 2400, 2000, 0], 6800, 8800, 2000, 2023], [109, "104", "RAJESH BRIKKAL", "KNR", "UAE", 2024, [0, 0, 0, 2400, 2400, 0], 4800, 6800, 2000, 2024]];const YRS=[2021,2022,2023,2024,2025,2026];
-const M=RAW.map(r=>({sn:r[0],id:r[1],name:r[2],block:r[3],country:r[4],join:r[5],pays:r[6],paid:r[7],exp:r[8],due:r[9],start:r[10]}));
+const M=RAW.map(r=>({sn:r[0],id:r[1],name:r[2],block:r[3],country:r[4],join:r[5],pays:r[6],paid0:r[7],exp:r[8],start:r[10]}));
 const BANDS=[["Above 6,000","4+ years pending",d=>d>6000],["4,001 – 6,000","about 3 years pending",d=>d>4000&&d<=6000],["2,001 – 4,000","about 2 years pending",d=>d>2000&&d<=4000],["Up to 2,000","about 1 year pending",d=>d>0&&d<=2000],["Cleared","nothing due",d=>d<=0]];
 const f=n=>n.toLocaleString('en-US');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fd=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||'');return m?`${+m[3]} ${MON[+m[2]-1]} ${m[1]}`:''};
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 let view='country';try{view=localStorage.getItem('pyssView')||'country'}catch(e){}
-const open=new Set();
-document.getElementById('kTot').textContent=f(M.reduce((a,m)=>a+Math.max(m.due,0),0));
-document.getElementById('kMem').textContent=M.filter(m=>m.due>0).length+' / '+M.length;
-document.getElementById('kPaid').textContent=f(M.reduce((a,m)=>a+m.paid,0));
+const open=new Set(),expanded=new Set();
+let PAY={};            // sn -> [{id,amount,date,note}]
+let db=null,canWrite=false,formSn=null,draft={},confirmDel=null,saving=false,pendingRender=false;
+function newPaid(m){return (PAY[m.sn]||[]).reduce((a,p)=>a+p.amount,0)}
+function paid(m){return m.paid0+newPaid(m)}
+function due(m){return m.exp-paid(m)}
 function bi(d){return d<=0?0:d<=2000?1:d<=4000?2:d<=6000?3:4}
 const FLAG={'UAE':'🇦🇪','Saudi Arabia':'🇸🇦','Oman':'🇴🇲','Qatar':'🇶🇦','Bahrain':'🇧🇭','Kuwait':'🇰🇼','Canada':'🇨🇦','Germany':'🇩🇪','Slovakia':'🇸🇰','Australia':'🇦🇺','USA':'🇺🇸','Seaman (at sea)':'⚓'};
 const BCOL=[['#22c55e','#f0fdf4'],['#eab308','#fefce8'],['#f97316','#fff7ed'],['#ef4444','#fef2f2'],['#b91c1c','#fee2e2']];
 const CCOL=['#3b82f6','#8b5cf6','#06b6d4','#14b8a6','#f59e0b','#ec4899','#6366f1','#10b981','#0ea5e9','#a855f7','#f43f5e','#84cc16'];
-function sorted(a){const s=document.getElementById('sort').value;return [...a].sort(s==='name'?(x,y)=>x.name.localeCompare(y.name):s==='sn'?(x,y)=>x.sn-y.sn:(x,y)=>y.due-x.due||x.sn-y.sn)}
-function rowHTML(m,showCountry){const start=m.start;
+function dueLabel(d){return d>0?f(d):d<0?'Advance '+f(-d):'Cleared'}
+function kpis(){
+ document.getElementById('kTot').textContent=f(M.reduce((a,m)=>a+Math.max(due(m),0),0));
+ document.getElementById('kMem').textContent=M.filter(m=>due(m)>0).length+' / '+M.length;
+ document.getElementById('kPaid').textContent=f(M.reduce((a,m)=>a+paid(m),0));
+ const n=M.reduce((a,m)=>a+newPaid(m),0),k=document.getElementById('kNew');
+ k.hidden=!n;k.textContent='+'+f(n)+' since 25 Oct';}
+function sorted(a){const s=document.getElementById('sort').value;return [...a].sort(s==='name'?(x,y)=>x.name.localeCompare(y.name):s==='sn'?(x,y)=>x.sn-y.sn:(x,y)=>due(y)-due(x)||x.sn-y.sn)}
+function formHTML(m){const d=draft;const amt=parseInt(d.amount,10);const after=amt>0?due(m)-amt:null;
+ return `<form class="pform" data-sn="${m.sn}">
+ <label>Amount paid<input id="pAmt" type="number" inputmode="numeric" min="1" step="1" value="${esc(d.amount||'')}" placeholder="e.g. 2000" required></label>
+ <label>Date paid<input id="pDate" type="date" value="${esc(d.date||today())}" required></label>
+ <label class="full">Note (optional)<input id="pNote" type="text" maxlength="120" value="${esc(d.note||'')}" placeholder="e.g. 2025 dues, via bank transfer"></label>
+ <div class="prev" id="pPrev">${after==null?'Current due: '+dueLabel(due(m)):'Due after this payment: <b>'+dueLabel(after)+'</b>'}</div>
+ ${d.err?`<div class="ferr">${esc(d.err)}</div>`:''}
+ <div class="bts"><button type="button" class="cancel" data-cancel>Cancel</button><button type="submit" class="save" ${saving?'disabled':''}>${saving?'Saving…':'Save payment'}</button></div></form>`}
+function rowHTML(m,showCountry){const start=m.start,d=due(m),np=PAY[m.sn]||[],npt=newPaid(m);
  const yrs=YRS.map((y,i)=>{const p=m.pays[i];const c=y<start?'na':(p?'':'no');return `<div class="yr ${c}">${y}<b>${p?f(p):'–'}</b></div>`}).join('');
- return `<div class="row b${bi(m.due)}r" data-sn="${m.sn}"><div class="r1"><span class="nm">${m.name}</span><span class="due b${bi(m.due)}">${m.due>0?f(m.due):'Cleared'}</span></div>
- <div class="r2">ID ${m.id} · ${m.block}${showCountry?' · '+m.country:''} · joined ${m.join} · dues from ${m.start} · paid ${f(m.paid)} of ${f(m.exp)}</div><div class="yrs">${yrs}</div></div>`}
+ const plist=np.length?`<div class="pays"><h4>Paid since 25 Oct</h4>${np.map(p=>`<div class="pl"><span class="pd">${fd(p.date)}</span><span class="pn">${esc(p.note||'')}</span><span class="pa">+${f(p.amount)}</span>${canWrite?(confirmDel===p.id?`<button class="x-del" data-del="${p.id}">Remove?</button>`:`<button class="x-del" data-ask="${p.id}" aria-label="Remove payment">✕</button>`):''}</div>`).join('')}</div>`:'';
+ const add=canWrite?(formSn===m.sn?formHTML(m):`<button class="addbtn" data-add="${m.sn}">+ Record payment</button>`):'';
+ return `<div class="row b${bi(d)}r ${expanded.has(m.sn)?'x':''}" data-sn="${m.sn}"><div class="r1"><span class="nm">${esc(m.name)}</span><span class="due b${bi(d)}">${dueLabel(d)}</span></div>
+ <div class="r2">ID ${m.id} · ${esc(m.block)}${showCountry?' · '+esc(m.country):''} · joined ${m.join} · dues from ${m.start} · paid ${f(paid(m))} of ${f(m.exp)}${npt?`<span class="newp">+${f(npt)} new</span>`:''}</div>
+ <div class="det"><div class="yrs">${yrs}</div>${plist}${add}</div></div>`}
 function groups(){const q=document.getElementById('q').value.trim().toLowerCase();
  const L=M.filter(m=>!q||(m.name+' '+m.id+' '+m.block+' '+m.country).toLowerCase().includes(q));
  if(view==='country'){const g={};L.forEach(m=>(g[m.country]=g[m.country]||[]).push(m));
   return Object.entries(g).map(([k,v])=>({key:'c:'+k,title:k,sub:'',items:v,icon:FLAG[k]||'🌍'})).sort((a,b)=>tot(b.items)-tot(a.items))}
- if(view==='balance')return BANDS.map(([t,s,fn],i)=>({key:'b:'+t,title:t,sub:s,items:L.filter(m=>fn(m.due)),band:4-i})).filter(g=>g.items.length);
+ if(view==='balance')return BANDS.map(([t,s,fn],i)=>({key:'b:'+t,title:t,sub:s,items:L.filter(m=>fn(due(m))),band:4-i})).filter(g=>g.items.length);
  return [{key:'all',title:'All members',sub:'',items:L}]}
-function tot(a){return a.reduce((s,m)=>s+Math.max(m.due,0),0)}
-function render(){const gs=groups();let ci=0;const q=document.getElementById('q').value.trim();
+function tot(a){return a.reduce((s,m)=>s+Math.max(due(m),0),0)}
+function render(){kpis();const gs=groups();let ci=0;const q=document.getElementById('q').value.trim();
  document.getElementById('list').innerHTML=gs.length?gs.map(g=>{const isOpen=open.has(g.key)||q||view==='all';
-  const st=g.band!=null?`--gc:${BCOL[g.band][0]};--gb:${BCOL[g.band][1]}`:`--gc:${CCOL[ci++%CCOL.length]}`;return `<div class="grp ${isOpen?'open':''}" style="${st}" data-k="${g.key}"><div class="gh">${g.icon?`<span class="flag">${g.icon}</span>`:''}<div class="t"><b>${g.title}</b><span>${g.items.length} member${g.items.length>1?'s':''}${g.sub?' · '+g.sub:''}</span></div><span class="amt">${f(tot(g.items))}</span><span class="chev">›</span></div>
+  const st=g.band!=null?`--gc:${BCOL[g.band][0]};--gb:${BCOL[g.band][1]}`:`--gc:${CCOL[ci++%CCOL.length]}`;return `<div class="grp ${isOpen?'open':''}" style="${st}" data-k="${g.key}"><div class="gh">${g.icon?`<span class="flag">${g.icon}</span>`:''}<div class="t"><b>${esc(g.title)}</b><span>${g.items.length} member${g.items.length>1?'s':''}${g.sub?' · '+g.sub:''}</span></div><span class="amt">${f(tot(g.items))}</span><span class="chev">›</span></div>
   <div class="body">${sorted(g.items).map(m=>rowHTML(m,view!=='country')).join('')}<div class="act"><button class="btn" data-copy="${g.key}">Copy list</button></div></div></div>`}).join(''):'<div class="sub">No matches.</div>'}
-document.getElementById('list').addEventListener('click',e=>{
+function formFocused(){const a=document.activeElement;return a&&a.closest&&a.closest('.pform')}
+const list=document.getElementById('list');
+list.addEventListener('click',e=>{
  const c=e.target.closest('[data-copy]');if(c){const g=groups().find(x=>x.key===c.dataset.copy);
-  const txt=`PYSS Fund – ${g.title} (as on 25 Oct 2026)\n`+sorted(g.items).map((m,i)=>`${i+1}. ${m.name} (ID ${m.id}${view!=='country'?', '+m.country:''}) – ${m.due>0?f(m.due):'Cleared'}`).join('\n')+`\nTotal due: ${f(tot(g.items))}`;
+  const txt=`PYSS Fund – ${g.title} (as on ${fd(today())})\n`+sorted(g.items).map((m,i)=>`${i+1}. ${m.name} (ID ${m.id}${view!=='country'?', '+m.country:''}) – ${dueLabel(due(m))}`).join('\n')+`\nTotal due: ${f(tot(g.items))}`;
   navigator.clipboard.writeText(txt).then(()=>toast('Copied – paste into WhatsApp')).catch(()=>toast('Copy not allowed here'));return}
- const r=e.target.closest('.row');if(r){r.classList.toggle('x');return}
+ const ad=e.target.closest('[data-add]');if(ad){formSn=+ad.dataset.add;draft={date:today()};confirmDel=null;render();const i=document.getElementById('pAmt');i&&i.focus();return}
+ if(e.target.closest('[data-cancel]')){formSn=null;draft={};render();return}
+ const ask=e.target.closest('[data-ask]');if(ask){confirmDel=ask.dataset.ask;render();return}
+ const del=e.target.closest('[data-del]');if(del){removePay(del.dataset.del);return}
+ if(e.target.closest('.det'))return;
+ const r=e.target.closest('.row');if(r){const sn=+r.dataset.sn;expanded.has(sn)?expanded.delete(sn):expanded.add(sn);r.classList.toggle('x');return}
  const h=e.target.closest('.gh');if(h){const g=h.parentElement;g.classList.toggle('open');g.classList.contains('open')?open.add(g.dataset.k):open.delete(g.dataset.k)}});
+list.addEventListener('input',e=>{const fm=e.target.closest('.pform');if(!fm)return;
+ draft.amount=document.getElementById('pAmt').value;draft.date=document.getElementById('pDate').value;draft.note=document.getElementById('pNote').value;
+ const m=M.find(x=>x.sn===formSn),amt=parseInt(draft.amount,10);
+ document.getElementById('pPrev').innerHTML=amt>0?'Due after this payment: <b>'+dueLabel(due(m)-amt)+'</b>':'Current due: '+dueLabel(due(m))});
+list.addEventListener('submit',async e=>{e.preventDefault();if(saving)return;
+ const amt=parseInt(draft.amount,10),date=draft.date||today(),note=(draft.note||'').trim().slice(0,120);
+ if(!(amt>0)){draft.err='Enter the amount paid, as a whole number above 0.';render();return}
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){draft.err='Pick the date the payment was made.';render();return}
+ const m=M.find(x=>x.sn===formSn);saving=true;draft.err='';render();
+ try{await db.collection('payments').add({sn:m.sn,memberId:m.id,amount:amt,date,note,at:new Date().toISOString()});
+  saving=false;formSn=null;draft={};render();toast(`Saved ${f(amt)} for ${m.name}`)}
+ catch(err){saving=false;draft.err=err&&err.code==='invalid_argument'?'You don\'t have permission to record payments on this page.':err&&err.code==='quota_exceeded'?'The payment store is full. Ask the page owner to tidy old entries.':'Could not save. Check your connection and try again.';render()}});
+async function removePay(id){confirmDel=null;try{await db.doc('payments/'+id).delete();toast('Payment removed')}catch(e){toast('Could not remove the payment');render()}}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{view=b.dataset.v;try{localStorage.setItem('pyssView',view)}catch(e){};setTabs();render()});
 function setTabs(){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.v===view))}
 document.getElementById('q').oninput=render;document.getElementById('sort').onchange=render;
 function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('on');setTimeout(()=>el.classList.remove('on'),1800)}
+function status(t,warn){const s=document.getElementById('st');s.textContent=t;s.classList.toggle('warn',!!warn);s.hidden=!t}
+list.addEventListener('focusout',()=>setTimeout(()=>{if(pendingRender&&!formFocused()){pendingRender=false;render()}},0));
 setTabs();render();
-</script></body></html>
+(async()=>{
+ if(!window.claude||!claude.use){status('Showing the 25 Oct list. Payments recorded later can only be seen inside Claude.',true);return}
+ db=await claude.use('db');
+ if(!db){status('Showing the 25 Oct list. Sign in to see payments recorded since then.',true);return}
+ const user=await claude.use('user');canWrite=user?await user.canEdit():false;
+ let timer=setTimeout(()=>status('Recorded payments can\'t be reached yet. Showing what has loaded so far.',true),10000);
+ db.collection('payments').orderBy('date').onSnapshot(snap=>{
+  if(!snap.metadata.fromCache){clearTimeout(timer);status(canWrite?'':'View only · the page owner and editors record payments.')}
+  const P={};snap.docs.forEach(d=>{const x=d.data();const a=Math.round(+x.amount);if(!(a>0)||!M.some(m=>m.sn===x.sn))return;(P[x.sn]=P[x.sn]||[]).push({id:d.id,amount:a,date:String(x.date||''),note:String(x.note||'')})});
+  PAY=P;if(formFocused()){pendingRender=true;kpis()}else render()},
+ err=>{clearTimeout(timer);status('Recorded payments could not be loaded. Showing the 25 Oct list.',true)});
+})();
+</script>
+</body></html>
