@@ -68,7 +68,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 </style></head><body>
 <div class="wrap">
 <div class="hero"><h1>PYSS Fund – Pending Dues</h1><div class="sub">Base list as on 25 Oct 2026, plus payments recorded here since then · tap a group to open, tap a name for details</div>
-<div class="kpis"><div class="kpi k1"><b id="kTot"></b><span>Net due</span></div><div class="kpi k2"><b id="kMem"></b><span>Members with dues</span></div><div class="kpi k3"><b id="kPaid"></b><span>Collected so far</span><small id="kNew" hidden></small></div></div>
+<div class="kpis"><div class="kpi k1"><b id="kTot"></b><span>Net due</span></div><div class="kpi k2"><b id="kMem"></b><span>Members with dues</span></div><div class="kpi k3"><b id="kPaid"></b><span>Collected since 25 Oct</span></div></div>
 <div class="status" id="st">Loading recorded payments…</div></div>
 <div class="legend"><span class="lg b4">Above 6,000</span><span class="lg b3">4,001–6,000</span><span class="lg b2">2,001–4,000</span><span class="lg b1">Up to 2,000</span><span class="lg b0">Cleared</span></div>
 <div class="tabs"><button class="tab on" data-v="country">By Country</button><button class="tab" data-v="balance">By Balance</button><button class="tab" data-v="all">All</button></div>
@@ -101,9 +101,7 @@ function dueLabel(d){return d>0?f(d):d<0?'Advance '+f(-d):'Cleared'}
 function kpis(){
  document.getElementById('kTot').textContent=f(M.reduce((a,m)=>a+Math.max(due(m),0),0));
  document.getElementById('kMem').textContent=M.filter(m=>due(m)>0).length+' / '+M.length;
- document.getElementById('kPaid').textContent=f(M.reduce((a,m)=>a+paid(m),0));
- const n=M.reduce((a,m)=>a+newPaid(m),0),k=document.getElementById('kNew');
- k.hidden=!n;k.textContent='+'+f(n)+' since 25 Oct';}
+ document.getElementById('kPaid').textContent=f(M.reduce((a,m)=>a+newPaid(m),0));}
 function sorted(a){const s=document.getElementById('sort').value;return [...a].sort(s==='name'?(x,y)=>x.name.localeCompare(y.name):s==='sn'?(x,y)=>x.sn-y.sn:(x,y)=>due(y)-due(x)||x.sn-y.sn)}
 function formHTML(m){const d=draft;const amt=parseInt(d.amount,10);const after=amt>0?due(m)-amt:null;
  return `<form class="pform" data-sn="${m.sn}">
