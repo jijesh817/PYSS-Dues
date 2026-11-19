@@ -32,7 +32,7 @@ h1{font-size:20px;margin:0 0 2px;color:#1e3a8a}.sub{color:var(--mut);font-size:1
 .legend{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
 .lg{font-size:12px;padding:3px 9px;border-radius:999px;font-weight:600}
 .tabs{display:flex;gap:6px;position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:5}
-.tab{flex:1;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:9px 6px;font-size:14px;font-weight:600;cursor:pointer}
+.tab{flex:1;min-width:0;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:9px 6px;font-size:14px;font-weight:600;cursor:pointer}
 .tab.on{background:var(--acc);color:#fff;border-color:var(--acc);box-shadow:0 2px 8px rgba(37,99,235,.25)}
 input[type=search]{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:15px;margin:2px 0 10px}
 .grp{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--gc,#93c5fd);border-radius:14px;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,.05)}
@@ -45,6 +45,7 @@ input[type=search]{width:100%;padding:10px 12px;border-radius:10px;border:1px so
 .row{padding:10px 14px;border-bottom:1px solid var(--line);cursor:pointer;border-left:4px solid transparent}.row:last-child{border-bottom:0}
 .row:nth-child(even){background:#fafcfe}
 .r1{display:flex;justify-content:space-between;align-items:center;gap:8px}.nm{font-weight:600;min-width:0}
+.blk{display:inline-block;font-size:11px;font-weight:700;color:#1e40af;background:var(--accs);border:1px solid #bfdbfe;border-radius:6px;padding:0 6px;margin-left:6px;vertical-align:1px;white-space:nowrap}
 .due{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;padding:3px 10px;border-radius:999px;font-size:14px}
 .r2{font-size:12px;color:var(--mut);margin-top:3px}
 .newp{display:inline-block;font-size:11px;font-weight:700;color:var(--ok);background:var(--oks);border:1px solid #bbf7d0;border-radius:999px;padding:1px 7px;margin-left:4px;white-space:nowrap}
@@ -69,7 +70,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .toast.on{opacity:1}
 .sortbar{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--mut);margin-bottom:8px}
 .sortbar select{background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:5px}
-@media (max-width:420px){.kpi b{font-size:16px}.yrs{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:420px){.tab{font-size:13px;padding:9px 4px}.kpi b{font-size:16px}.yrs{grid-template-columns:repeat(3,1fr)}}
 @media (prefers-reduced-motion:reduce){.chev,.toast{transition:none}}
 </style>
 </head>
@@ -83,7 +84,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
  <div class="iosTip" id="iosTip" hidden>To install on iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>.</div>
 </div>
 <div class="legend"><span class="lg b4">Above 6,000</span><span class="lg b3">4,001–6,000</span><span class="lg b2">2,001–4,000</span><span class="lg b1">Up to 2,000</span><span class="lg b0">Cleared</span></div>
-<div class="tabs"><button class="tab on" data-v="country">By Country</button><button class="tab" data-v="balance">By Balance</button><button class="tab" data-v="all">All</button></div>
+<div class="tabs"><button class="tab on" data-v="country">By Country</button><button class="tab" data-v="block">By Block</button><button class="tab" data-v="balance">By Balance</button><button class="tab" data-v="all">All</button></div>
 <input type="search" id="q" placeholder="Search name, ID or block…">
 <div class="sortbar">Sort names by <select id="sort"><option value="due">Highest due first</option><option value="name">Name A–Z</option><option value="sn">S/N</option></select></div>
 <div id="list"></div>
@@ -125,13 +126,15 @@ function sorted(a){const s=document.getElementById('sort').value;return [...a].s
 function rowHTML(m,showCountry){const start=m.start,d=due(m),np=PAY[m.sn]||[],npt=newPaid(m);
  const yrs=YRS.map((y,i)=>{const p=m.pays[i];const c=y<start?'na':(p?'':'no');return `<div class="yr ${c}">${y}<b>${p?f(p):'–'}</b></div>`}).join('');
  const plist=np.length?`<div class="pays"><h4>Paid since 25 Oct</h4>${np.map(p=>`<div class="pl"><span class="pd">${esc(fd(p.date))}</span><span class="pn">${esc(p.note)}</span><span class="pa">+${f(p.amount)}</span></div>`).join('')}</div>`:'';
- return `<div class="row b${bi(d)}r ${expanded.has(m.sn)?'x':''}" data-sn="${m.sn}"><div class="r1"><span class="nm">${esc(m.name)}</span><span class="due b${bi(d)}">${dueLabel(d)}</span></div>
- <div class="r2">ID ${m.id} · ${esc(m.block)}${showCountry?' · '+esc(m.country):''} · joined ${m.join} · dues from ${m.start} · paid ${f(paid(m))} of ${f(m.exp)}${npt?`<span class="newp">+${f(npt)} new</span>`:''}</div>
+ return `<div class="row b${bi(d)}r ${expanded.has(m.sn)?'x':''}" data-sn="${m.sn}"><div class="r1"><span class="nm">${esc(m.name)}${view!=='block'?`<span class="blk">${esc(m.block)}</span>`:''}</span><span class="due b${bi(d)}">${dueLabel(d)}</span></div>
+ <div class="r2">ID ${m.id}${showCountry?' · '+esc(m.country):''} · joined ${m.join} · dues from ${m.start} · paid ${f(paid(m))} of ${f(m.exp)}${npt?`<span class="newp">+${f(npt)} new</span>`:''}</div>
  <div class="det"><div class="yrs">${yrs}</div>${plist}</div></div>`}
 function groups(){const q=document.getElementById('q').value.trim().toLowerCase();
  const L=M.filter(m=>!q||(m.name+' '+m.id+' '+m.block+' '+m.country).toLowerCase().includes(q));
  if(view==='country'){const g={};L.forEach(m=>(g[m.country]=g[m.country]||[]).push(m));
   return Object.entries(g).map(([k,v])=>({key:'c:'+k,title:k,sub:'',items:v,icon:FLAG[k]||'🌍'})).sort((a,b)=>tot(b.items)-tot(a.items))}
+ if(view==='block'){const g={};L.forEach(m=>(g[m.block]=g[m.block]||[]).push(m));
+  return Object.entries(g).map(([k,v])=>({key:'k:'+k,title:k,sub:'',items:v})).sort((a,b)=>tot(b.items)-tot(a.items)||a.title.localeCompare(b.title))}
  if(view==='balance')return BANDS.map(([t,s,fn],i)=>({key:'b:'+t,title:t,sub:s,items:L.filter(m=>fn(due(m))),band:4-i})).filter(g=>g.items.length);
  return [{key:'all',title:'All members',sub:'',items:L}]}
 function tot(a){return a.reduce((s,m)=>s+Math.max(due(m),0),0)}
@@ -142,7 +145,7 @@ function render(){kpis();const gs=groups();let ci=0;const q=document.getElementB
 const list=document.getElementById('list');
 list.addEventListener('click',e=>{
  const c=e.target.closest('[data-copy]');if(c){const g=groups().find(x=>x.key===c.dataset.copy);
-  const txt=`PYSS Fund – ${g.title} (as on ${fd(today())})\n`+sorted(g.items).map((m,i)=>`${i+1}. ${m.name} (ID ${m.id}${view!=='country'?', '+m.country:''}) – ${dueLabel(due(m))}`).join('\n')+`\nTotal due: ${f(tot(g.items))}`;
+  const txt=`PYSS Fund – ${g.title} (as on ${fd(today())})\n`+sorted(g.items).map((m,i)=>`${i+1}. ${m.name} (ID ${m.id}${view!=='block'?', '+m.block:''}${view!=='country'?', '+m.country:''}) – ${dueLabel(due(m))}`).join('\n')+`\nTotal due: ${f(tot(g.items))}`;
   copyText(txt);return}
  if(e.target.closest('.det'))return;
  const r=e.target.closest('.row');if(r){const sn=+r.dataset.sn;expanded.has(sn)?expanded.delete(sn):expanded.add(sn);r.classList.toggle('x');return}
