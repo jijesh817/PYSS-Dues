@@ -56,6 +56,15 @@ when **Refresh** is tapped. Google can take a minute or two to serve a change.
 If a row's S/N or amount is not recognised, the app names that sheet row so it
 can be fixed.
 
+## Changing a member's block
+
+The app also reads the **Members** tab of the same sheet (import
+`sheet-template/Members.csv` to start it). It needs an **S/N** column and a
+**Block** column; other columns are ignored. Type the new block in that
+member's row and the app shows it on the next refresh. A blank Block cell
+keeps the block from the 25 Oct list. If there is no Members tab, the app
+uses the 25 Oct blocks.
+
 ## Installing on a phone
 
 - **Android (Chrome):** open the link and tap **Install app** on the page, or
