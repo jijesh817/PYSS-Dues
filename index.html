@@ -140,8 +140,8 @@ function groups(){const q=document.getElementById('q').value.trim().toLowerCase(
 function tot(a){return a.reduce((s,m)=>s+Math.max(due(m),0),0)}
 function render(){kpis();const gs=groups();let ci=0;const q=document.getElementById('q').value.trim();
  document.getElementById('list').innerHTML=gs.length?gs.map(g=>{const isOpen=open.has(g.key)||q||view==='all';
-  const st=g.band!=null?`--gc:${BCOL[g.band][0]};--gb:${BCOL[g.band][1]}`:`--gc:${CCOL[ci++%CCOL.length]}`;return `<div class="grp ${isOpen?'open':''}" style="${st}" data-k="${g.key}"><div class="gh">${g.icon?`<span class="flag">${g.icon}</span>`:''}<div class="t"><b>${esc(g.title)}</b><span>${g.items.length} member${g.items.length>1?'s':''}${g.sub?' · '+g.sub:''}</span></div><span class="amt">${f(tot(g.items))}</span><span class="chev">›</span></div>
-  <div class="body">${sorted(g.items).map(m=>rowHTML(m,view!=='country')).join('')}<div class="act"><button class="btn" data-copy="${g.key}">Copy list</button></div></div></div>`}).join(''):'<div class="sub">No matches.</div>'}
+  const st=g.band!=null?`--gc:${BCOL[g.band][0]};--gb:${BCOL[g.band][1]}`:`--gc:${CCOL[ci++%CCOL.length]}`;return `<div class="grp ${isOpen?'open':''}" style="${st}" data-k="${esc(g.key)}"><div class="gh">${g.icon?`<span class="flag">${g.icon}</span>`:''}<div class="t"><b>${esc(g.title)}</b><span>${g.items.length} member${g.items.length>1?'s':''}${g.sub?' · '+g.sub:''}</span></div><span class="amt">${f(tot(g.items))}</span><span class="chev">›</span></div>
+  <div class="body">${sorted(g.items).map(m=>rowHTML(m,view!=='country')).join('')}<div class="act"><button class="btn" data-copy="${esc(g.key)}">Copy list</button></div></div></div>`}).join(''):'<div class="sub">No matches.</div>'}
 const list=document.getElementById('list');
 list.addEventListener('click',e=>{
  const c=e.target.closest('[data-copy]');if(c){const g=groups().find(x=>x.key===c.dataset.copy);
