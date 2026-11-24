@@ -56,6 +56,51 @@ when **Refresh** is tapped. Google can take a minute or two to serve a change.
 If a row's S/N or amount is not recognised, the app names that sheet row so it
 can be fixed.
 
+## Recording payments from the app
+
+The app has a **+ Add payment** button (top of the app, and in each member's
+details) that adds the row to the Payments tab for you. A treasurer PIN
+protects it. It stays hidden until it is set up once:
+
+1. Open the **PYSS Payments** Google Sheet and choose **Extensions → Apps
+   Script**.
+2. Delete what is in `Code.gs`, paste in everything from
+   [`apps-script/Code.gs`](apps-script/Code.gs), and tap **Save**.
+3. Click **Project Settings** (the gear), scroll to **Script Properties**,
+   choose **Add script property**, and add:
+   - Property: `PIN`
+   - Value: the treasurer PIN. Use 6 digits or more.
+
+   Then **Save script properties**. To change the PIN later, edit it here.
+4. Click **Deploy → New deployment**. Next to *Select type*, click the gear and
+   choose **Web app**. Set:
+   - Execute as: **Me**
+   - Who has access: **Anyone**
+
+   Click **Deploy**, then **Authorize access** and allow it with your Google
+   account. (Google may warn that the app is unverified: choose **Advanced →
+   Go to … (unsafe)**. It is your own script.)
+5. Copy the **Web app URL** (it ends in `/exec`). In `index.html`, paste it
+   between the quotes of:
+
+   ```js
+   const SCRIPT_URL='__SCRIPT_URL__';
+   ```
+
+   and commit. The button appears once GitHub Pages has updated.
+
+Using it: tap **+ Add payment**, find the member, enter the amount (or tap a
+quick amount such as *Full due*), check the date, add a note if you like,
+enter the PIN and tap **Save**. The payment shows straight away, marked
+*saving to sheet…* until the sheet returns it a minute or so later.
+
+- The PIN is checked by the script, never stored in the app's code. Tick
+  **Remember PIN on this phone** only on the treasurer's own phone.
+- After 5 wrong PINs, saving pauses for 10 minutes.
+- To correct or remove a payment, edit or delete its row in the sheet.
+- If you change `Code.gs` later, use **Deploy → Manage deployments → Edit
+  (pencil) → Version: New version → Deploy**, so the URL stays the same.
+
 ## Changing a member's block
 
 The app also reads the **Members** tab of the same sheet (import
@@ -79,3 +124,4 @@ The app works offline with the payments it last loaded.
 - `manifest.webmanifest`, `sw.js`, `icons/` – what makes it installable and
   work offline
 - `sheet-template/` – CSV files to start the Google Sheet
+- `apps-script/Code.gs` – the small Google script behind **+ Add payment**
