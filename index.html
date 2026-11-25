@@ -59,6 +59,19 @@ input[type=search]{width:100%;padding:10px 12px;border-radius:10px;border:1px so
 .pl{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0;border-top:1px dashed #bbf7d0}.pl:first-of-type{border-top:0}
 .pl .pd{color:var(--mut);white-space:nowrap;font-variant-numeric:tabular-nums}.pl .pn{flex:1;min-width:0;color:var(--mut);overflow-wrap:anywhere}
 .pl .pa{font-weight:700;color:#166534;font-variant-numeric:tabular-nums;white-space:nowrap}
+.addbtn{margin-top:8px;border:1px solid #86efac;background:#fff;color:#166534;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:700;cursor:pointer}
+.pform{margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;cursor:default}
+.pform label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--mut);min-width:0}
+.pform input{font:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;color:var(--ink);background:#fff;width:100%;min-width:0}
+.pform .full{grid-column:1/-1}
+.pform .chk{flex-direction:row;align-items:center;gap:6px;align-self:end;padding-bottom:10px}.pform .chk input{width:auto}
+.pform .prev{grid-column:1/-1;font-size:12px;color:var(--mut)}
+.pform .bts{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
+.save{border:0;background:var(--ok);color:#fff;border-radius:8px;padding:8px 16px;font-weight:700;font-size:14px;cursor:pointer}
+.save:disabled{opacity:.6;cursor:default}
+.cancel{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer}
+.ferr{grid-column:1/-1;font-size:12px;color:#b91c1c}
+.pl .pend{font-size:11px;color:#b45309;white-space:nowrap}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .b0{background:#dcfce7;color:#166534}.b1{background:#fef9c3;color:#854d0e}.b2{background:#ffedd5;color:#9a3412}.b3{background:#fecaca;color:#991b1b}.b4{background:#dc2626;color:#fff}
 .row.b0r{border-left-color:#22c55e}.row.b1r{border-left-color:#eab308}.row.b2r{border-left-color:#f97316}.row.b3r{border-left-color:#ef4444}.row.b4r{border-left-color:#b91c1c}
@@ -88,13 +101,15 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 <input type="search" id="q" placeholder="Search name, ID or block…">
 <div class="sortbar">Sort names by <select id="sort"><option value="due">Highest due first</option><option value="name">Name A–Z</option><option value="sn">S/N</option></select></div>
 <div id="list"></div>
-<div class="note"><b>How due is worked out:</b> dues start from the first year a member paid; if they have not paid yet, from their joining year. The first two years are 2,400 each, then 2,000 per year, up to 2026. Due = expected − total paid so far. Payments are counted as a total, so an extra payment in one year offsets a short one in another.<br><br><b>New payments</b> are recorded by the treasurer in the PYSS payments Google Sheet and appear here when you open or refresh the app.<br><br><b>Check:</b> ID 107 appears twice in the source list (Fidal Castro, S/N 38 and Sukesh Manthal, S/N 78). Payments are matched by S/N.<br><br><b>Blocks</b> come from the Members tab of the same sheet when it has S/N and Block columns.</div>
+<div class="note"><b>How due is worked out:</b> dues start from the first year a member paid; if they have not paid yet, from their joining year. The first two years are 2,400 each, then 2,000 per year, up to 2026. Due = expected − total paid so far. Payments are counted as a total, so an extra payment in one year offsets a short one in another.<br><br><b>New payments</b> are recorded in the PYSS payments Google Sheet and appear here when you open or refresh the app. The treasurer can also tap a member's name, then <b>Record payment</b>, and enter the amount, date and PIN: the app adds the row to the sheet.<br><br><b>Check:</b> ID 107 appears twice in the source list (Fidal Castro, S/N 38 and Sukesh Manthal, S/N 78). Payments are matched by S/N.<br><br><b>Blocks</b> come from the Members tab of the same sheet when it has S/N and Block columns.</div>
 </div><div class="toast" id="toast"></div>
 <script>
 // ---- Settings: paste the Google Sheet ID between the quotes (see README) ----
 const SHEET_ID='1aI3iV_viYfMjQY9MLlQ1r8LHHOdeM8Vksp_nr6bQG-k';
 const SHEET_TAB='Payments';
 const MEMBERS_TAB='Members'; // optional: S/N + Block columns override each member's block
+// Web app URL of apps-script/Code.gs (see README). Leave empty to hide "Record payment".
+const RECORD_URL='';
 // -----------------------------------------------------------------------------
 const RAW=[[1, "045", "RAHUL K.S", "VYTHIRI", "Bahrain", 2020, [2400, 2400, 0, 0, 0, 0], 4800, 12800, 8000, 2021], [2, "048", "RAHUL T P", "KNR", "UAE", 2020, [2400, 2400, 0, 0, 0, 0], 4800, 12800, 8000, 2021], [3, "057", "SANGEETH MONDI KITTA", "CVA", "UAE", 2020, [2400, 2400, 0, 0, 0, 0], 4800, 12800, 8000, 2021], [4, "069", "Srubinraj mangali", "CVA", "Oman", 2020, [2400, 1200, 0, 0, 0, 0], 3600, 12800, 9200, 2021], [5, "078", "KRIPAL", "KNR", "Oman", 2021, [0, 2400, 0, 0, 0, 0], 2400, 10800, 8400, 2022], [6, "091", "PREMJITH", "KNR", "UAE", 2023, [0, 0, 0, 0, 0, 0], 0, 8800, 8800, 2023], [7, "093", "SREERAJ", "CVA", "UAE", 2023, [0, 0, 0, 0, 0, 0], 0, 8800, 8800, 2023], [8, "008", "BAL ANOOP", "CVA", "UAE", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [9, "010", "BIJU BALAN", "TLY", "Oman", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [10, "015", "DILEEP THALLI", "CVA", "Qatar", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [11, "016", "DIPIN KAPOOR", "CVA", "UAE", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [12, "019", "Gopalakrishnan Manoj", "VYTHIRI", "Bahrain", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [13, "022", "JITHIN MANTHAL", "KNR", "Qatar", 2020, [2400, 2400, 2400, 0, 0, 0], 7200, 12800, 5600, 2021], [14, "023", "KOLLU SANTHOSH", "CLT", "UAE", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [15, "026", "MANI PAMMAN", "CVA", "Bahrain", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [16, "027", "MANOJ", "KTBA", "UAE", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [17, "032", "Murali Manthal", "CLT", "UAE", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [18, "049", "RAJANEESH", "KTBA", "UAE", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [19, "050", "RAJESH WEST HILL", "CLT", "Saudi Arabia", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [20, "052", "RAJESH KAPOOR", "CLT", "Saudi Arabia", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [21, "054", "RAMAKRISHNAN P", "KNR", "Oman", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [22, "060", "SARATH MANGALI", "MNVDY", "Bahrain", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [23, "068", "SOORAJ GOVIND", "KTBA", "Saudi Arabia", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [24, "072", "SURESH MANI", "KTBA", "Oman", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [25, "073", "THIRU PATHI DINOOP", "CVA", "Saudi Arabia", 2020, [2400, 2400, 2000, 0, 0, 0], 6800, 12800, 6000, 2021], [26, "079", "NIJIL", "CVA", "UAE", 2021, [0, 2400, 2400, 0, 0, 0], 4800, 10800, 6000, 2022], [27, "082", "MITHUN CHANDRAN", "KTBA", "Germany", 2022, [0, 2400, 2400, 0, 0, 0], 4800, 10800, 6000, 2022], [28, "084", "SRUJITH B", "CVA", "Bahrain", 2022, [0, 0, 2400, 0, 0, 0], 2400, 8800, 6400, 2023], [29, "092", "AKSHAY THALLI", "CVA", "UAE", 2023, [0, 0, 2400, 0, 0, 0], 2400, 8800, 6400, 2023], [30, "094", "SHARANJITH", "KNR", "Canada", 2023, [0, 0, 2000, 0, 0, 0], 2000, 8800, 6800, 2023], [31, "095", "AMAL RAJ", "KNR", "Bahrain", 2024, [0, 0, 0, 0, 0, 0], 0, 6800, 6800, 2024], [32, "096", "ASHWINRAJ", "KNR", "UAE", 2024, [0, 0, 0, 0, 0, 0], 0, 6800, 6800, 2024], [33, "097", "SATHEESH", "KTBA", "Saudi Arabia", 2024, [0, 0, 0, 0, 0, 0], 0, 6800, 6800, 2024], [34, "099", "DEEPAK MANOHARAN", "CLT", "UAE", 2024, [0, 0, 0, 0, 0, 0], 0, 6800, 6800, 2024], [35, "100", "AJITH", "KTBA", "Oman", 2024, [0, 0, 0, 0, 0, 0], 0, 6800, 6800, 2024], [36, "101", "AKSHAY POTHIKKA", "KNR", "UAE", 2024, [0, 0, 0, 0, 0, 0], 0, 6800, 6800, 2024], [37, "103", "SANIL THALLI", "CVA", "UAE", 2024, [0, 0, 0, 0, 0, 0], 0, 6800, 6800, 2024], [38, "107", "FIDAL CASTRO", "CLT", "UAE", 2025, [0, 0, 0, 0, 0, 0], 0, 4800, 4800, 2025], [39, "108", "SOORAJ MURALI", "CLT", "UAE", 2025, [0, 0, 0, 0, 0, 0], 0, 4800, 4800, 2025], [40, "003", "Anand Coonoor", "COONOOR", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [41, "004", "ANIL (PAINT)", "KTBA", "UAE", 2020, [2400, 2504, 2000, 2000, 0, 0], 8904, 12800, 3896, 2021], [42, "006", "ANILKUMAR CHAMI", "TLY", "Oman", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [43, "011", "BIJURAJ T K", "KNR", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [44, "012", "Binoy Kollu", "CVA", "Kuwait", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [45, "014", "DHEEKSHITH KAPOOR", "CVA", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [46, "018", "GIRISHAN CHAMI", "MNVDY", "Australia", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [47, "024", "Krijith makkali krishnan", "MNVDY", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [48, "028", "MANTHAL SREENIVASAN", "CLT", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [49, "031", "MONISH MOHANAN", "KNR", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [50, "034", "Nigeesh Mondikitta", "CVA", "Qatar", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [51, "035", "NIKETH", "KNR", "Canada", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [52, "038", "PRABIN KRISHNA", "KNR", "Qatar", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [53, "040", "PRASHOBH MANGANELLI", "KNR", "Kuwait", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [54, "041", "PRASOBH MANIYAN", "TLY", "Saudi Arabia", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [55, "043", "PRAVEEN POOSARI", "CVA", "Saudi Arabia", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [56, "047", "RAHUL RAJ", "KTBA", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [57, "051", "RAJESH BAL", "CLT", "Saudi Arabia", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [58, "059", "SANTHOSH THALLI", "CLT", "UAE", 2020, [2400, 2400, 2000, 1000, 0, 0], 7800, 12800, 5000, 2021], [59, "061", "SARATH RAMESHAN", "KTBA", "Saudi Arabia", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [60, "062", "SHAJI . P", "CLT", "UAE", 2020, [2400, 2400, 2000, 400, 0, 0], 7200, 12800, 5600, 2021], [61, "064", "SHIBU LAKSHMANAN", "KNR", "Oman", 2020, [2400, 2400, 2000, 400, 0, 0], 7200, 12800, 5600, 2021], [62, "065", "SHYJU . G", "TLY", "Qatar", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [63, "066", "SHYJU . P", "CLT", "Saudi Arabia", 2020, [2400, 2400, 2000, 400, 0, 0], 7200, 12800, 5600, 2021], [64, "067", "SREEJITH MN", "KNR", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [65, "070", "SUJITH", "KTBA", "UAE", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [66, "071", "SUNIL PAPPA", "CVA", "Saudi Arabia", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [67, "075", "VINOD KUMAR", "MNVDY", "Kuwait", 2020, [2400, 2600, 2000, 2000, 0, 0], 9000, 12800, 3800, 2021], [68, "076", "VISHNU SURENDRAN", "VYTHIRI", "Kuwait", 2020, [2400, 2400, 2000, 2000, 0, 0], 8800, 12800, 4000, 2021], [69, "077", "YOGESH PANAMARATH", "KNR", "Kuwait", 2020, [2400, 2400, 2000, 1000, 0, 0], 7800, 12800, 5000, 2021], [70, "081", "SAJESH", "KNR", "Saudi Arabia", 2021, [0, 2500, 2401, 1900, 0, 0], 6801, 10800, 3999, 2022], [71, "083", "SOORAJ SUNIL", "CLT", "Canada", 2022, [0, 2400, 2400, 2001, 0, 0], 6801, 10800, 3999, 2022], [72, "088", "NIKHIL PV", "MNVDY", "UAE", 2022, [0, 0, 2400, 2400, 0, 0], 4800, 8800, 4000, 2023], [73, "089", "AKSHAY MK", "CVA", "Qatar", 2022, [0, 0, 2400, 2400, 0, 0], 4800, 8800, 4000, 2023], [74, "098", "JISHNU", "KTBA", "UAE", 2024, [0, 0, 0, 2400, 0, 0], 2400, 6800, 4400, 2024], [75, "102", "JIJU MOHANAN GURUVAYOOR", "CLT", "Germany", 2024, [0, 0, 0, 2400, 0, 0], 2400, 6800, 4400, 2024], [76, "105", "AKSHAY M N", "KNR", "Slovakia", 2024, [0, 0, 0, 2400, 0, 0], 2400, 6800, 4400, 2024], [77, "106", "RIJIN DEV", "KTBA", "UAE", 2024, [0, 0, 0, 2400, 0, 0], 2400, 6800, 4400, 2024], [78, "107", "SUKESH MANTHAL", "KNR", "Saudi Arabia", 2020, [1200, 3600, 0, 2000, 0, 0], 6800, 12800, 6000, 2021], [79, "001", "AKHIL MAGAALI SELVARAJ", "MNVDY", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [80, "002", "AKHIL RAJAN", "KTBA", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [81, "005", "ANIL KUMAR (Ananda)", "MADIKERI", "Kuwait", 2020, [2400, 2000, 2400, 2000, 2000, 0], 10800, 12800, 2000, 2021], [82, "007", "ASHOK THALAKONDAN", "CVA", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [83, "009", "BALU P", "KTBA", "Kuwait", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [84, "013", "BIPIN KRISHNA", "KNR", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [85, "017", "GANESH BAL", "KTBA", "Qatar", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [86, "020", "GOUTHAM", "CLT", "Oman", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [87, "021", "JIJESH BALAN", "KTBA", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [88, "025", "MANEESH BALAN", "TLY", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [89, "029", "Mithin Manthal", "KNR", "Oman", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [90, "030", "MITHUN RAJ", "MNVDY", "Seaman (at sea)", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [91, "033", "NIDESH", "CLT", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [92, "036", "PATHI DEEPESH", "KNR", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [93, "037", "Ramakrishnan", "COONOOR", "USA", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [94, "039", "PRADEESH ( KAAKU )", "KNR", "Canada", 2020, [2400, 2600, 2000, 2000, 2000, 0], 11000, 12800, 1800, 2021], [95, "042", "PRASOON MN", "KNR", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [96, "044", "RAHUL BRIKAL", "KNR", "UAE", 2020, [2400, 2401, 2000, 2000, 2000, 0], 10801, 12800, 1999, 2021], [97, "046", "Rahul Narayanan", "MNVDY", "Kuwait", 2020, [2400, 2400, 2000, 2000, 2000, 2000], 12800, 12800, 0, 2021], [98, "053", "RAJESH M K", "MNVDY", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [99, "055", "RAMESH C R", "MNVDY", "Kuwait", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [100, "056", "Ramesh Palakkad", "PKD", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [101, "058", "SANOJ MONDIKITTA", "CVA", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [102, "063", "SHAMMYDAS THALLI", "CVA", "UAE", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [103, "074", "UMESH MANTHAL", "KNR", "Qatar", 2020, [2400, 2400, 2000, 2000, 2000, 0], 10800, 12800, 2000, 2021], [104, "080", "RAJESH KUMAR VENGAI", "KNR", "Kuwait", 2020, [0, 2400, 2400, 2000, 2000, 2000], 10800, 10800, 0, 2022], [105, "085", "RAJANEESH THALLI", "CVA", "Germany", 2022, [0, 0, 2400, 2400, 2000, 0], 6800, 8800, 2000, 2023], [106, "086", "RAHUL S/O BABU", "CVA", "Saudi Arabia", 2022, [0, 0, 2400, 2400, 2400, 0], 7200, 8800, 1600, 2023], [107, "087", "YADHU Krishnan", "CLT", "Qatar", 2022, [0, 0, 2000, 2000, 2400, 0], 6400, 8800, 2400, 2023], [108, "090", "MADHU", "CVA", "Qatar", 2022, [0, 0, 2400, 2400, 2000, 0], 6800, 8800, 2000, 2023], [109, "104", "RAJESH BRIKKAL", "KNR", "UAE", 2024, [0, 0, 0, 2400, 2400, 0], 4800, 6800, 2000, 2024]];const YRS=[2021,2022,2023,2024,2025,2026];
 const M=RAW.map(r=>({sn:r[0],id:r[1],name:r[2],block:r[3],block0:r[3],country:r[4],join:r[5],pays:r[6],paid0:r[7],exp:r[8],start:r[10]}));
@@ -110,6 +125,8 @@ function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorag
 let view=ls('pyssView')||'country';
 const open=new Set(),expanded=new Set();
 let PAY={};
+let LOCAL=[];            // payments saved from this phone that the sheet hasn't served yet
+let formSn=null,draft={},saving=false,pendingRender=false;
 function newPaid(m){return (PAY[m.sn]||[]).reduce((a,p)=>a+p.amount,0)}
 function paid(m){return m.paid0+newPaid(m)}
 function due(m){return m.exp-paid(m)}
@@ -125,10 +142,22 @@ function kpis(){
 function sorted(a){const s=document.getElementById('sort').value;return [...a].sort(s==='name'?(x,y)=>x.name.localeCompare(y.name):s==='sn'?(x,y)=>x.sn-y.sn:(x,y)=>due(y)-due(x)||x.sn-y.sn)}
 function rowHTML(m,showCountry){const start=m.start,d=due(m),np=PAY[m.sn]||[],npt=newPaid(m);
  const yrs=YRS.map((y,i)=>{const p=m.pays[i];const c=y<start?'na':(p?'':'no');return `<div class="yr ${c}">${y}<b>${p?f(p):'–'}</b></div>`}).join('');
- const plist=np.length?`<div class="pays"><h4>Paid since 25 Oct</h4>${np.map(p=>`<div class="pl"><span class="pd">${esc(fd(p.date))}</span><span class="pn">${esc(p.note)}</span><span class="pa">+${f(p.amount)}</span></div>`).join('')}</div>`:'';
+ const plist=np.length?`<div class="pays"><h4>Paid since 25 Oct</h4>${np.map(p=>`<div class="pl"><span class="pd">${esc(fd(p.date))}</span><span class="pn">${esc(p.note)}</span>${p.local?'<span class="pend">sending to sheet…</span>':''}<span class="pa">+${f(p.amount)}</span></div>`).join('')}</div>`:'';
+ const add=RECORD_URL?(formSn===m.sn?formHTML(m):`<button class="addbtn" data-add="${m.sn}">+ Record payment</button>`):'';
  return `<div class="row b${bi(d)}r ${expanded.has(m.sn)?'x':''}" data-sn="${m.sn}"><div class="r1"><span class="nm">${esc(m.name)}${view!=='block'?`<span class="blk">${esc(m.block)}</span>`:''}</span><span class="due b${bi(d)}">${dueLabel(d)}</span></div>
  <div class="r2">ID ${m.id}${showCountry?' · '+esc(m.country):''} · joined ${m.join} · dues from ${m.start} · paid ${f(paid(m))} of ${f(m.exp)}${npt?`<span class="newp">+${f(npt)} new</span>`:''}</div>
- <div class="det"><div class="yrs">${yrs}</div>${plist}</div></div>`}
+ <div class="det"><div class="yrs">${yrs}</div>${plist}${add}</div></div>`}
+function formHTML(m){const d=draft,amt=parseInt(d.amount,10);
+ return `<form class="pform" data-sn="${m.sn}" autocomplete="off">
+ <label>Amount paid<input id="pAmt" type="number" inputmode="numeric" min="1" step="1" value="${esc(d.amount||'')}" placeholder="e.g. 2000" required></label>
+ <label>Date paid<input id="pDate" type="date" value="${esc(d.date||today())}" max="${today()}" required></label>
+ <label class="full">Note (optional)<input id="pNote" type="text" maxlength="120" value="${esc(d.note||'')}" placeholder="e.g. Yr 2026, bank transfer"></label>
+ <label>PIN<input id="pPin" type="password" inputmode="numeric" value="${esc(d.pin||'')}" required></label>
+ <label class="chk"><input id="pRem" type="checkbox" ${d.rem!==false?'checked':''}>Remember PIN on this phone</label>
+ <div class="prev" id="pPrev">${prevText(m,amt)}</div>
+ ${d.err?`<div class="ferr">${esc(d.err)}</div>`:''}
+ <div class="bts"><button type="button" class="cancel" data-cancel>Cancel</button><button type="submit" class="save" ${saving?'disabled':''}>${saving?'Saving…':'Save to sheet'}</button></div></form>`}
+function prevText(m,amt){return amt>0?'Due after this payment: <b>'+dueLabel(due(m)-amt)+'</b>':'Current due: '+dueLabel(due(m))}
 function groups(){const q=document.getElementById('q').value.trim().toLowerCase();
  const L=M.filter(m=>!q||(m.name+' '+m.id+' '+m.block+' '+m.country).toLowerCase().includes(q));
  if(view==='country'){const g={};L.forEach(m=>(g[m.country]=g[m.country]||[]).push(m));
@@ -147,9 +176,46 @@ list.addEventListener('click',e=>{
  const c=e.target.closest('[data-copy]');if(c){const g=groups().find(x=>x.key===c.dataset.copy);
   const txt=`PYSS Fund – ${g.title} (as on ${fd(today())})\n`+sorted(g.items).map((m,i)=>`${i+1}. ${m.name} (ID ${m.id}${view!=='block'?', '+m.block:''}${view!=='country'?', '+m.country:''}) – ${dueLabel(due(m))}`).join('\n')+`\nTotal due: ${f(tot(g.items))}`;
   copyText(txt);return}
+ const ad=e.target.closest('[data-add]');if(ad){formSn=+ad.dataset.add;draft={date:today(),pin:ls('pyssPin')||''};render();const i=document.getElementById('pAmt');i&&i.focus();return}
+ if(e.target.closest('[data-cancel]')){formSn=null;draft={};render();return}
  if(e.target.closest('.det'))return;
  const r=e.target.closest('.row');if(r){const sn=+r.dataset.sn;expanded.has(sn)?expanded.delete(sn):expanded.add(sn);r.classList.toggle('x');return}
  const h=e.target.closest('.gh');if(h){const g=h.parentElement;g.classList.toggle('open');g.classList.contains('open')?open.add(g.dataset.k):open.delete(g.dataset.k)}});
+function formFocused(){const a=document.activeElement;return !!(a&&a.closest&&a.closest('.pform'))}
+function refresh(){if(formFocused()){pendingRender=true;kpis()}else render()}
+list.addEventListener('focusout',()=>setTimeout(()=>{if(pendingRender&&!formFocused()){pendingRender=false;render()}},0));
+list.addEventListener('input',e=>{if(!e.target.closest('.pform'))return;
+ draft.amount=document.getElementById('pAmt').value;draft.date=document.getElementById('pDate').value;
+ draft.note=document.getElementById('pNote').value;draft.pin=document.getElementById('pPin').value;draft.rem=document.getElementById('pRem').checked;
+ document.getElementById('pPrev').innerHTML=prevText(BYSN.get(formSn),parseInt(draft.amount,10))});
+const SAVE_ERR={wrong_pin:'Wrong PIN.',locked:'Too many wrong PINs. Try again in 15 minutes.',no_pin_set:'The sheet script has no PIN set yet (see README).',no_tab:'The sheet has no Payments tab.',bad_amount:'Enter the amount as a whole number above 0.',bad_date:'Pick the date the payment was made.',bad_sn:'Member not recognised.'};
+list.addEventListener('submit',async e=>{e.preventDefault();if(saving)return;
+ const m=BYSN.get(formSn),amt=parseInt(draft.amount,10),date=draft.date||today(),note=(draft.note||'').trim().slice(0,120),pin=(draft.pin||'').trim();
+ if(!(amt>0)){draft.err='Enter the amount paid, as a whole number above 0.';render();return}
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){draft.err='Pick the date the payment was made.';render();return}
+ if(!pin){draft.err='Enter the PIN.';render();return}
+ saving=true;draft.err='';render();
+ let res=null;
+ try{const r=await fetch(RECORD_URL,{method:'POST',body:JSON.stringify({pin,sn:m.sn,name:m.name,amount:amt,date,note})});res=await r.json()}
+ catch(err){res={ok:false,error:navigator.onLine===false?'offline':'network'}}
+ saving=false;
+ if(!res||!res.ok){const c=res&&res.error;
+  draft.err=SAVE_ERR[c]||(c==='offline'?'You are offline. Connect and try again.':'Could not reach the sheet. Check your connection and try again.');
+  if(c==='wrong_pin'){draft.pin='';ls('pyssPin','')}render();return}
+ ls('pyssPin',draft.rem!==false?pin:'');
+ LOCAL.push({sn:m.sn,amount:amt,date,note,ts:Date.now()});mergeLocal();
+ formSn=null;draft={};render();toast(`Saved ${f(amt)} for ${m.name}`);
+ setTimeout(loadPayments,4000)});
+function saveLocal(){ls('pyssLocal',JSON.stringify(LOCAL))}
+// Show saved payments straight away; drop each once the sheet serves it (or after 30 min).
+function mergeLocal(){const now=Date.now();
+ Object.keys(PAY).forEach(k=>{PAY[k]=PAY[k].filter(p=>!p.local)});
+ const used=new Set();
+ LOCAL=LOCAL.filter(l=>{if(now-l.ts>1800000)return false;
+  const hit=(PAY[l.sn]||[]).find(p=>!used.has(p)&&p.amount===l.amount&&p.date===l.date);
+  if(hit){used.add(hit);return false}return true});
+ LOCAL.forEach(l=>(PAY[l.sn]=PAY[l.sn]||[]).push({amount:l.amount,date:l.date,note:l.note,local:true}));
+ saveLocal()}
 function copyText(txt){
  if(navigator.share&&/Android|iPhone|iPad/i.test(navigator.userAgent)){navigator.share({text:txt}).catch(()=>{});return}
  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast('Copied – paste into WhatsApp')).catch(()=>toast('Copy not allowed here'))}
@@ -201,10 +267,10 @@ async function loadPayments(){
   const [pt,mt]=await Promise.all([fetchTab(SHEET_TAB),fetchTab(MEMBERS_TAB).catch(()=>null)]);
   const {P,bad}=parseSheet(pt);PAY=P;const ts=Date.now();
   let B=null;try{B=mt?parseMembers(mt):null}catch(e){}
-  applyBlocks(B);ls('pyssPay',JSON.stringify({P,B,ts}));render();
+  applyBlocks(B);ls('pyssPay',JSON.stringify({P,B,ts}));mergeLocal();refresh();
   status('Payments updated '+ago(ts)+(bad.length?` · check sheet row${bad.length>1?'s':''} ${bad.slice(0,5).join(', ')}${bad.length>5?'…':''} (S/N or amount not recognised)`:''),bad.length>0)}
  catch(e){const c=cached();
-  if(c){PAY=c.P;applyBlocks(c.B);render();status((navigator.onLine===false?'Offline':'Could not reach the payments sheet')+' · showing payments from '+ago(c.ts),true)}
+  if(c){PAY=c.P;applyBlocks(c.B);mergeLocal();refresh();status((navigator.onLine===false?'Offline':'Could not reach the payments sheet')+' · showing payments from '+ago(c.ts),true)}
   else status(e.message==='columns'?'The payments sheet needs S/N and Amount columns. Showing the 25 Oct list.':'Could not load payments from the sheet. Showing the 25 Oct list.',true)}
  finally{loading=false;btn.disabled=false}}
 document.getElementById('refresh').onclick=loadPayments;
@@ -220,7 +286,7 @@ if(/iPhone|iPad|iPod/i.test(navigator.userAgent)&&!standalone)document.getElemen
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 function cached(){try{return JSON.parse(ls('pyssPay')||'null')}catch(e){return null}}
-(()=>{const c=cached();if(c&&c.P){PAY=c.P;applyBlocks(c.B)}})();
+(()=>{const c=cached();if(c&&c.P){PAY=c.P;applyBlocks(c.B)}try{LOCAL=JSON.parse(ls('pyssLocal')||'[]')||[]}catch(e){LOCAL=[]}mergeLocal()})();
 setTabs();render();loadPayments();
 </script>
 </body>

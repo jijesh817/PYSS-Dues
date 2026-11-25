@@ -56,6 +56,39 @@ when **Refresh** is tapped. Google can take a minute or two to serve a change.
 If a row's S/N or amount is not recognised, the app names that sheet row so it
 can be fixed.
 
+## Recording payments from the app
+
+The treasurer can also record a payment from the app: tap a member's name,
+then **+ Record payment**, enter the amount, date, an optional note and the
+PIN, and tap **Save to sheet**. The app adds the row to the Payments tab for
+you. Only someone with the PIN can do this; everyone else just views.
+
+One-time setup (about 5 minutes, on a computer):
+
+1. Open the **PYSS Payments** sheet → **Extensions → Apps Script**.
+2. Delete what is in `Code.gs` and paste in the contents of
+   [`apps-script/Code.gs`](apps-script/Code.gs). Click **Save**.
+3. **Project Settings** (gear icon) → **Script properties → Add script
+   property**: Property `PIN`, Value your chosen PIN (e.g. 6 digits). Save.
+   Share the PIN only with people who should record payments.
+4. **Deploy → New deployment** → type **Web app**. *Execute as*: **Me**.
+   *Who has access*: **Anyone**. Click **Deploy**, allow access when Google
+   asks, and copy the **Web app URL** (ends in `/exec`).
+5. In `index.html`, paste that URL between the quotes on this line:
+
+   ```js
+   const RECORD_URL='';
+   ```
+
+   Once that is on `main`, the **Record payment** button appears in the app.
+
+- To change the PIN, edit the `PIN` script property. Phones that remembered
+  the old PIN will be asked for the new one.
+- After 10 wrong PINs the script refuses for 15 minutes.
+- If you later edit `Code.gs`, use **Deploy → Manage deployments → Edit →
+  New version** so the URL stays the same.
+- To fix a mistake, edit or delete the row in the sheet.
+
 ## Changing a member's block
 
 The app also reads the **Members** tab of the same sheet (import
@@ -79,3 +112,4 @@ The app works offline with the payments it last loaded.
 - `manifest.webmanifest`, `sw.js`, `icons/` – what makes it installable and
   work offline
 - `sheet-template/` – CSV files to start the Google Sheet
+- `apps-script/Code.gs` – the sheet script that lets the app add payment rows
