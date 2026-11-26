@@ -65,6 +65,18 @@ member's row and the app shows it on the next refresh. A blank Block cell
 keeps the block from the 25 Oct list. If there is no Members tab, the app
 uses the 25 Oct blocks.
 
+## Recording payments from the app (owner and admins)
+
+Switched **off** by default. To turn it on, set `RECORD_PAYMENTS` to `true`
+near the top of the script in `index.html`. It uses the PYSS sheet script
+from the Draw app (`APPS_SCRIPT_URL`), which must have the latest
+`Code.gs` deployed with `OWNER_PIN` / `ADMIN_PINS` set (see the PYSS-Draw
+README).
+
+When on, each member's details get **+ Record payment** (amount, date,
+note). The PIN is checked by the script; the row goes to the Payments tab
+with the admin's name in a **By** column. Members only view.
+
 ## Installing on a phone
 
 - **Android (Chrome):** open the link and tap **Install app** on the page, or
