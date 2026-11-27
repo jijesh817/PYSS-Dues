@@ -79,6 +79,11 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .whobar{font-size:12px;color:var(--mut);margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}.whobar b{color:var(--ink)}
 .role{font-size:11px;font-weight:800;border-radius:999px;padding:1px 8px;background:#dbeafe;color:#1e3a8a}.role.owner{background:#1e3a8a;color:#fff}
 .linkbtn{border:0;background:none;color:var(--acc);font-weight:700;font-size:12px;text-decoration:underline;cursor:pointer;padding:0}
+.siform{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.siform input{font:15px system-ui;padding:6px 10px;border:1px solid var(--line);border-radius:8px;width:130px}
+.wa{display:inline-flex;margin-top:8px;margin-right:8px;background:#25d366;color:#fff;text-decoration:none;font-weight:800;font-size:13px;border-radius:999px;padding:7px 14px}
+.fubox{margin-top:8px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--mut)}
+.fubox textarea{width:100%;min-height:180px;font:14px/1.45 system-ui,sans-serif;padding:8px;border:1px solid var(--line);border-radius:10px;color:var(--ink);background:#fff}
+.fubts{display:flex;justify-content:flex-end}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#1e3a8a;color:#fff;padding:8px 14px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.on{opacity:1}
 .sortbar{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--mut);margin-bottom:8px}
@@ -95,11 +100,12 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
  <div class="kpis"><div class="kpi k1"><b id="kTot"></b><span>Net due</span></div><div class="kpi k2"><b id="kMem"></b><span>Members with dues</span></div><div class="kpi k3"><b id="kPaid"></b><span>Collected since 25 Oct</span></div></div>
  <div class="statusbar"><div class="status" id="st">Loading payments…</div><button class="ibtn" id="refresh">Refresh</button></div>
  <div class="whobar" id="whoBar" hidden></div>
+ <div class="fubox" id="fuBox" hidden><label for="fuMsg">Follow-up message ( {name}, {due} and {link} are filled in )</label><textarea id="fuMsg"></textarea><div class="fubts"><button type="button" class="linkbtn" id="fuReset">Reset message</button></div></div>
  <div class="iosTip" id="iosTip" hidden>To install on iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>.</div>
 </div>
 <div class="legend"><span class="lg b4">Above 6,000</span><span class="lg b3">4,001–6,000</span><span class="lg b2">2,001–4,000</span><span class="lg b1">Up to 2,000</span><span class="lg b0">Cleared</span></div>
-<div class="tabs"><button class="tab on" data-v="country">Country</button><button class="tab" data-v="block">Block</button><button class="tab" data-v="category">Category</button><button class="tab" data-v="balance">Balance</button><button class="tab" data-v="all">All</button></div>
-<input type="search" id="q" placeholder="Search name, ID, block or category…">
+<div class="tabs"><button class="tab on" data-v="country">Country</button><button class="tab" data-v="block">Block</button><button class="tab" data-v="category" hidden>Category</button><button class="tab" data-v="balance">Balance</button><button class="tab" data-v="all">All</button></div>
+<input type="search" id="q" placeholder="Search name, ID or block…">
 <div class="sortbar">Sort names by <select id="sort"><option value="due">Highest due first</option><option value="name">Name A–Z</option><option value="sn">S/N</option></select></div>
 <div id="list"></div>
 <div class="note"><b>How due is worked out:</b> dues start from the first year a member paid; if they have not paid yet, from their joining year. The first two years are 2,400 each, then 2,000 per year, up to 2026. Due = expected − total paid so far. Payments are counted as a total, so an extra payment in one year offsets a short one in another.<br><br><b>New payments</b> are recorded by the treasurer in the PYSS payments Google Sheet and appear here when you open or refresh the app.<br><br><b>Check:</b> ID 107 appears twice in the source list (Fidal Castro, S/N 38 and Sukesh Manthal, S/N 78). Payments are matched by S/N.<br><br><b>Blocks</b> come from the Members tab of the same sheet when it has S/N and Block columns.</div>
@@ -145,7 +151,7 @@ function rowHTML(m,showCountry){const start=m.start,d=due(m),np=PAY[m.sn]||[],np
  const plist=np.length?`<div class="pays"><h4>Paid since 25 Oct</h4>${np.map(p=>`<div class="pl"><span class="pd">${esc(fd(p.date))}</span><span class="pn">${esc(p.note)}</span><span class="pa">+${f(p.amount)}</span></div>`).join('')}</div>`:'';
  return `<div class="row b${bi(d)}r ${expanded.has(m.sn)?'x':''}" data-sn="${m.sn}"><div class="r1"><span class="nm">${esc(m.name)}${view!=='block'?`<span class="blk">${esc(m.block)}</span>`:''}${catTags(m)}</span><span class="due b${bi(d)}">${dueLabel(d)}</span></div>
  <div class="r2">ID ${m.id}${showCountry?' · '+esc(m.country):''} · joined ${m.join} · dues from ${m.start} · paid ${f(paid(m))} of ${f(m.exp)}${npt?`<span class="newp">+${f(npt)} new</span>`:''}</div>
- <div class="det"><div class="yrs">${yrs}</div>${plist}${payOn?(formSn===m.sn?payFormHTML(m):`<button class="addbtn" data-add="${m.sn}">+ Record payment</button>`):''}</div></div>`}
+ <div class="det"><div class="yrs">${yrs}</div>${plist}${waFollow(m)}${payOn?(formSn===m.sn?payFormHTML(m):`<button class="addbtn" data-add="${m.sn}">+ Record payment</button>`):''}</div></div>`}
 function groups(){const q=document.getElementById('q').value.trim().toLowerCase();
  const L=M.filter(m=>!q||(m.name+' '+m.id+' '+m.block+' '+m.country+' '+(m.cats||[]).join(' ')).toLowerCase().includes(q));
  if(view==='country'){const g={};L.forEach(m=>(g[m.country]=g[m.country]||[]).push(m));
@@ -174,7 +180,8 @@ function copyText(txt){
  if(navigator.share&&/Android|iPhone|iPad/i.test(navigator.userAgent)){navigator.share({text:txt}).catch(()=>{});return}
  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast('Copied – paste into WhatsApp')).catch(()=>toast('Copy not allowed here'))}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{view=b.dataset.v;ls('pyssView',view);setTabs();render()});
-function setTabs(){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.v===view))}
+function setTabs(){if(view==='category'&&!(typeof ADMIN!=='undefined'&&ADMIN))view='country';
+ document.querySelectorAll('.tab').forEach(b=>{b.classList.toggle('on',b.dataset.v===view);if(b.dataset.v==='category')b.hidden=!(typeof ADMIN!=='undefined'&&ADMIN)})}
 document.getElementById('q').oninput=render;document.getElementById('sort').onchange=render;
 function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('on');setTimeout(()=>el.classList.remove('on'),1800)}
 function status(t,warn){const s=document.getElementById('st');s.textContent=t;s.classList.toggle('warn',!!warn)}
@@ -199,15 +206,17 @@ async function fetchTab(tab){const url=`https://docs.google.com/spreadsheets/d/$
 const ROLE_COLS=['role','roles','category','categories','group','groups','tag','tags','position'];
 function splitCats(s){return String(s||'').split(/[,;\n]/).map(x=>x.trim().slice(0,30)).filter(Boolean).slice(0,4)}
 function parseMembers(text){const j=gvizTable(text);const cols=j.table.cols.map(c=>(c.label||'').toLowerCase().replace(/[^a-z]/g,''));
- const iS=cols.findIndex(c=>['sn','sno','serial','serialno'].includes(c)),iB=cols.findIndex(c=>c==='block'),iR=cols.findIndex(c=>ROLE_COLS.includes(c));
+ const iS=cols.findIndex(c=>['sn','sno','serial','serialno'].includes(c)),iB=cols.findIndex(c=>c==='block'),iR=-1;   // categories are admin-only: read from the private sheet after sign-in, never from here
  if(iS<0||(iB<0&&iR<0))return null;const B={},R={};
  j.table.rows.forEach(r=>{const c=r.c||[];const sn=Math.round(cellNum(c[iS]));if(!BYSN.has(sn))return;
   const b=iB>=0?cellText(c[iB]):'';if(b)B[sn]=b.slice(0,40);
   const cs=iR>=0?splitCats(cellText(c[iR])):[];if(cs.length)R[sn]=cs});
  return {B,R}}
 // Accepts {B,R} or an older cached plain block map.
-function applyBlocks(x){const B=x&&(x.B||x.R)?x.B:x,R=x&&x.R||{};
- M.forEach(m=>{m.block=(B&&B[m.sn])||m.block0;m.cats=R[m.sn]||[]})}
+function applyBlocks(x){const B=x&&(x.B||x.R)?x.B:x;
+ M.forEach(m=>{m.block=(B&&B[m.sn])||m.block0})}
+// Admin-only: categories from the private sheet (empty for members)
+function applyCats(){M.forEach(m=>{const a=ADMIN&&ADMIN[m.sn];m.cats=a&&a.cats||[]})}
 const CAT_COL=['#7c3aed','#0f766e','#b45309','#be185d','#1d4ed8','#4d7c0f','#9f1239','#0369a1'];
 function catColor(c){let h=0;for(const ch of c)h=(h*31+ch.charCodeAt(0))>>>0;return CAT_COL[h%CAT_COL.length]}
 function catTags(m){return (m.cats||[]).map(c=>`<span class="cat" style="--cc:${catColor(c)}">${esc(c)}</span>`).join('')}
@@ -254,17 +263,42 @@ if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceW
 function cached(){try{return JSON.parse(ls('pyssPay')||'null')}catch(e){return null}}
 
 // ---- Record payment (owner / admins; the sheet script checks the PIN and records who did it) ----
-const payOn=RECORD_PAYMENTS&&/^https:\/\/script\.google\.com\//.test(APPS_SCRIPT_URL);
-let PIN=payOn?(ls('pyssDuesPin')||''):'',WHO=null,formSn=null,draft={},saving=false;
+const adminOn=/^https:\/\/script\.google\.com\//.test(APPS_SCRIPT_URL);
+const payOn=RECORD_PAYMENTS&&adminOn;
+let PIN=adminOn?(ls('pyssDuesPin')||''):'',WHO=null,formSn=null,draft={},saving=false,signingIn=false;
+// Admin-only data (categories, WhatsApp numbers): kept in memory only, never saved on the phone
+var ADMIN=null;
+const FU_DEF='നമസ്കാരം {name} 🙏\n\nPYSS ഫണ്ടിലേക്ക് നിങ്ങളുടെ കുടിശ്ശിക {due} ആണ്.\nഎത്രയും വേഗം അടച്ച് സഹകരിക്കണമെന്ന് അഭ്യർത്ഥിക്കുന്നു.\n\nവിശദാംശങ്ങൾ: {link}\n\nനന്ദി 🙏\n– PYSS കമ്മിറ്റി';
+const fuMsg=()=>ls('pyssFuMsg')||FU_DEF;
+const titleName=s=>String(s).toLowerCase().replace(/(^|[\s(.])([a-z])/g,(m,a,b)=>a+b.toUpperCase());
+function waFollow(m){const c=ADMIN&&ADMIN[m.sn];if(!c||!c.phone||due(m)<=0)return '';
+ const txt=fuMsg().replace(/\{name\}/g,titleName(m.name)).replace(/\{due\}/g,f(due(m))).replace(/\{link\}/g,location.origin+location.pathname);
+ return `<a class="wa" href="https://wa.me/${esc(c.phone)}?text=${esc(encodeURIComponent(txt))}" target="_blank" rel="noopener">WhatsApp follow-up</a>`}
+async function loadAdmin(){if(!adminOn||!PIN)return;
+ try{const r=await callScript({action:'contacts',pin:PIN});
+  if(r.ok)ADMIN=r.contacts||{};else if(r.error==='bad_pin'){signOut();return}else ADMIN={};
+  applyCats();drawWho();setTabs();render()}catch(e){}}
+function signOut(){PIN='';WHO=null;ADMIN=null;ls('pyssDuesPin','');ls('pyssDuesWho','');applyCats();if(view==='category')view='country';setTabs();drawWho();render()}
 try{WHO=JSON.parse(ls('pyssDuesWho')||'null')}catch(e){}
 const PENDING=[];     // payments saved from this phone, shown until Google's copy of the sheet has them
 function applyPending(P){const now=Date.now();
  for(let i=PENDING.length-1;i>=0;i--){const p=PENDING[i],have=(P[p.sn]||[]).some(x=>x.amount===p.amount&&x.date===p.date);
   if(have||now-p.ts>180000){PENDING.splice(i,1);continue}(P[p.sn]=P[p.sn]||[]).push({amount:p.amount,date:p.date,note:p.note})}
  return P}
-function drawWho(){const el=document.getElementById('whoBar');if(!payOn||!PIN){el.hidden=true;return}
+function drawWho(){const el=document.getElementById('whoBar');if(!adminOn){el.hidden=true;return}
+ if(!PIN){el.hidden=false;
+  el.innerHTML=signingIn?`<form id="siF" class="siform"><input id="siPin" type="password" inputmode="numeric" autocomplete="off" placeholder="Admin PIN" aria-label="Admin PIN" required><button class="ibtn" type="submit">Sign in</button><button class="linkbtn" type="button" id="siX">Cancel</button></form>`:`<button type="button" class="linkbtn" id="siOpen">Admin sign in</button>`;
+  if(signingIn){document.getElementById('siPin').focus();document.getElementById('siX').onclick=()=>{signingIn=false;drawWho()};
+   document.getElementById('siF').onsubmit=async e=>{e.preventDefault();const pin=document.getElementById('siPin').value.trim();if(!pin)return;
+    const r=await callScript({action:'check',pin}).catch(()=>null);
+    if(r&&r.ok){PIN=pin;ls('pyssDuesPin',pin);signingIn=false;WHO={role:r.role||'owner',name:r.name||''};ls('pyssDuesWho',JSON.stringify(WHO));drawWho();loadAdmin();render()}
+    else toast(r&&r.error==='bad_pin'?'That PIN is wrong':r&&r.error==='locked'?'Too many wrong PINs. Try again in 10 minutes':"Couldn't reach the sheet script")}}
+  else document.getElementById('siOpen').onclick=()=>{signingIn=true;drawWho()};
+  return}
  el.hidden=false;el.innerHTML=`Signed in${WHO&&WHO.name?' as <b>'+esc(WHO.name)+'</b>':''}${WHO?` <span class="role ${WHO.role}">${WHO.role==='owner'?'Owner':'Admin'}</span>`:''} <button type="button" class="linkbtn" id="signOut">Sign out</button>`;
- document.getElementById('signOut').onclick=()=>{PIN='';WHO=null;ls('pyssDuesPin','');ls('pyssDuesWho','');drawWho();render()}}
+ el.innerHTML+=ADMIN?` · <button type="button" class="linkbtn" id="fuEdit">Follow-up message</button>`:'';
+ document.getElementById('signOut').onclick=signOut;
+ const fe=document.getElementById('fuEdit');if(fe)fe.onclick=()=>{const box=document.getElementById('fuBox');box.hidden=!box.hidden;if(!box.hidden){document.getElementById('fuMsg').value=fuMsg()}}}
 function payFormHTML(m){const a=parseInt(draft.amount,10);
  return `<form class="pform" data-sn="${m.sn}">
  ${PIN?'':'<label class="full">Admin PIN<input id="pPin" type="password" inputmode="numeric" autocomplete="off" value="'+esc(draft.pin||'')+'" required></label>'}
@@ -294,12 +328,15 @@ document.getElementById('list').addEventListener('submit',async e=>{e.preventDef
  try{const res=await callScript({action:'pay',pin,sn:m.sn,name:m.name,amount:amt,date,note});saving=false;
   if(!res.ok){if(res.error==='bad_pin'){PIN='';WHO=null;ls('pyssDuesPin','');ls('pyssDuesWho','');drawWho()}
    draft.err=res.error==='script_error'?'Sheet script problem: '+(res.message||'')+'. It may need the latest Code.gs deployed.':PAY_ERR[res.error]||('Not saved ('+res.error+').');render();return}
-  PIN=pin;ls('pyssDuesPin',pin);
+  PIN=pin;ls('pyssDuesPin',pin);if(!ADMIN)loadAdmin();
   if(!WHO){const w=await callScript({action:'check',pin}).catch(()=>null);if(w&&w.ok){WHO={role:w.role||'owner',name:w.name||res.by||''};ls('pyssDuesWho',JSON.stringify(WHO))}}
   PENDING.push({sn:m.sn,amount:amt,date,note,ts:Date.now()});(PAY[m.sn]=PAY[m.sn]||[]).push({amount:amt,date,note});
   formSn=null;draft={};render();drawWho();toast('Saved '+f(amt)+' for '+m.name);setTimeout(loadPayments,4000)}
  catch(err){saving=false;draft.err="Couldn't reach the sheet script. Check your connection and try again.";render()}});
 drawWho();
+document.getElementById('fuMsg').addEventListener('input',e=>{ls('pyssFuMsg',e.target.value);render()});
+document.getElementById('fuReset').onclick=()=>{ls('pyssFuMsg','');document.getElementById('fuMsg').value=FU_DEF;render()};
+if(adminOn&&PIN)loadAdmin();
 (()=>{const c=cached();if(c&&c.P){PAY=c.P;applyBlocks(c.B)}})();
 setTabs();render();loadPayments();
 </script>
