@@ -1,6 +1,6 @@
 // Offline support: keeps the app shell on the phone. Payments always come
 // fresh from the Google Sheet (the page caches the last copy itself).
-const CACHE = 'pyss-dues-v9';
+const CACHE = 'pyss-dues-v10';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

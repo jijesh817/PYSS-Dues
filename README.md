@@ -65,6 +65,19 @@ member's row and the app shows it on the next refresh. A blank Block cell
 keeps the block from the 25 Oct list. If there is no Members tab, the app
 uses the 25 Oct blocks.
 
+## Member categories
+
+Add a **Role** column to the **Members** tab (import
+`sheet-template/Members.csv`, which has S/N, names and an empty Role column).
+Type one or more categories per member, separated by commas, e.g.
+`Admin` or `Admin, Former admin 2024–2026`. Members with a category get a
+coloured tag beside their name, and the **Category** tab groups members by
+category (with **Copy list** for follow-up). Members without one are under
+"No category". The Draw app reads the same column for its reminders filter.
+
+Anyone with the app can see categories, so use them for groups (admins,
+former admins, committee…), not private notes.
+
 ## Recording payments from the app (owner and admins)
 
 Switched **off** by default. To turn it on, set `RECORD_PAYMENTS` to `true`

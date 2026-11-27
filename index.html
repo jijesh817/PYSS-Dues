@@ -45,6 +45,7 @@ input[type=search]{width:100%;padding:10px 12px;border-radius:10px;border:1px so
 .row{padding:10px 14px;border-bottom:1px solid var(--line);cursor:pointer;border-left:4px solid transparent}.row:last-child{border-bottom:0}
 .row:nth-child(even){background:#fafcfe}
 .r1{display:flex;justify-content:space-between;align-items:center;gap:8px}.nm{font-weight:600;min-width:0}
+.cat{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:var(--cc,#7c3aed);border-radius:6px;padding:0 6px;margin-left:4px;vertical-align:1px;white-space:nowrap}
 .blk{display:inline-block;font-size:11px;font-weight:700;color:#1e40af;background:var(--accs);border:1px solid #bfdbfe;border-radius:6px;padding:0 6px;margin-left:6px;vertical-align:1px;white-space:nowrap}
 .due{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;padding:3px 10px;border-radius:999px;font-size:14px}
 .r2{font-size:12px;color:var(--mut);margin-top:3px}
@@ -82,7 +83,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .toast.on{opacity:1}
 .sortbar{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--mut);margin-bottom:8px}
 .sortbar select{background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:5px}
-@media (max-width:420px){.tab{font-size:13px;padding:9px 4px}.kpi b{font-size:16px}.yrs{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:420px){.tab{font-size:12px;padding:9px 2px}.kpi b{font-size:16px}.yrs{grid-template-columns:repeat(3,1fr)}}
 @media (prefers-reduced-motion:reduce){.chev,.toast{transition:none}}
 </style>
 </head>
@@ -97,8 +98,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
  <div class="iosTip" id="iosTip" hidden>To install on iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>.</div>
 </div>
 <div class="legend"><span class="lg b4">Above 6,000</span><span class="lg b3">4,001–6,000</span><span class="lg b2">2,001–4,000</span><span class="lg b1">Up to 2,000</span><span class="lg b0">Cleared</span></div>
-<div class="tabs"><button class="tab on" data-v="country">By Country</button><button class="tab" data-v="block">By Block</button><button class="tab" data-v="balance">By Balance</button><button class="tab" data-v="all">All</button></div>
-<input type="search" id="q" placeholder="Search name, ID or block…">
+<div class="tabs"><button class="tab on" data-v="country">Country</button><button class="tab" data-v="block">Block</button><button class="tab" data-v="category">Category</button><button class="tab" data-v="balance">Balance</button><button class="tab" data-v="all">All</button></div>
+<input type="search" id="q" placeholder="Search name, ID, block or category…">
 <div class="sortbar">Sort names by <select id="sort"><option value="due">Highest due first</option><option value="name">Name A–Z</option><option value="sn">S/N</option></select></div>
 <div id="list"></div>
 <div class="note"><b>How due is worked out:</b> dues start from the first year a member paid; if they have not paid yet, from their joining year. The first two years are 2,400 each, then 2,000 per year, up to 2026. Due = expected − total paid so far. Payments are counted as a total, so an extra payment in one year offsets a short one in another.<br><br><b>New payments</b> are recorded by the treasurer in the PYSS payments Google Sheet and appear here when you open or refresh the app.<br><br><b>Check:</b> ID 107 appears twice in the source list (Fidal Castro, S/N 38 and Sukesh Manthal, S/N 78). Payments are matched by S/N.<br><br><b>Blocks</b> come from the Members tab of the same sheet when it has S/N and Block columns.</div>
@@ -142,15 +143,17 @@ function sorted(a){const s=document.getElementById('sort').value;return [...a].s
 function rowHTML(m,showCountry){const start=m.start,d=due(m),np=PAY[m.sn]||[],npt=newPaid(m);
  const yrs=YRS.map((y,i)=>{const p=m.pays[i];const c=y<start?'na':(p?'':'no');return `<div class="yr ${c}">${y}<b>${p?f(p):'–'}</b></div>`}).join('');
  const plist=np.length?`<div class="pays"><h4>Paid since 25 Oct</h4>${np.map(p=>`<div class="pl"><span class="pd">${esc(fd(p.date))}</span><span class="pn">${esc(p.note)}</span><span class="pa">+${f(p.amount)}</span></div>`).join('')}</div>`:'';
- return `<div class="row b${bi(d)}r ${expanded.has(m.sn)?'x':''}" data-sn="${m.sn}"><div class="r1"><span class="nm">${esc(m.name)}${view!=='block'?`<span class="blk">${esc(m.block)}</span>`:''}</span><span class="due b${bi(d)}">${dueLabel(d)}</span></div>
+ return `<div class="row b${bi(d)}r ${expanded.has(m.sn)?'x':''}" data-sn="${m.sn}"><div class="r1"><span class="nm">${esc(m.name)}${view!=='block'?`<span class="blk">${esc(m.block)}</span>`:''}${catTags(m)}</span><span class="due b${bi(d)}">${dueLabel(d)}</span></div>
  <div class="r2">ID ${m.id}${showCountry?' · '+esc(m.country):''} · joined ${m.join} · dues from ${m.start} · paid ${f(paid(m))} of ${f(m.exp)}${npt?`<span class="newp">+${f(npt)} new</span>`:''}</div>
  <div class="det"><div class="yrs">${yrs}</div>${plist}${payOn?(formSn===m.sn?payFormHTML(m):`<button class="addbtn" data-add="${m.sn}">+ Record payment</button>`):''}</div></div>`}
 function groups(){const q=document.getElementById('q').value.trim().toLowerCase();
- const L=M.filter(m=>!q||(m.name+' '+m.id+' '+m.block+' '+m.country).toLowerCase().includes(q));
+ const L=M.filter(m=>!q||(m.name+' '+m.id+' '+m.block+' '+m.country+' '+(m.cats||[]).join(' ')).toLowerCase().includes(q));
  if(view==='country'){const g={};L.forEach(m=>(g[m.country]=g[m.country]||[]).push(m));
   return Object.entries(g).map(([k,v])=>({key:'c:'+k,title:k,sub:'',items:v,icon:FLAG[k]||'🌍'})).sort((a,b)=>tot(b.items)-tot(a.items))}
  if(view==='block'){const g={};L.forEach(m=>(g[m.block]=g[m.block]||[]).push(m));
   return Object.entries(g).map(([k,v])=>({key:'k:'+k,title:k,sub:'',items:v})).sort((a,b)=>tot(b.items)-tot(a.items)||a.title.localeCompare(b.title))}
+ if(view==='category'){const g={};L.forEach(m=>{const cs=(m.cats&&m.cats.length)?m.cats:['No category'];cs.forEach(c=>(g[c]=g[c]||[]).push(m))});
+  return Object.entries(g).map(([k,v])=>({key:'r:'+k,title:k,sub:'',items:v})).sort((a,b)=>(a.title==='No category')-(b.title==='No category')||a.title.localeCompare(b.title))}
  if(view==='balance')return BANDS.map(([t,s,fn],i)=>({key:'b:'+t,title:t,sub:s,items:L.filter(m=>fn(due(m))),band:4-i})).filter(g=>g.items.length);
  return [{key:'all',title:'All members',sub:'',items:L}]}
 function tot(a){return a.reduce((s,m)=>s+Math.max(due(m),0),0)}
@@ -161,7 +164,7 @@ function render(){kpis();const gs=groups();let ci=0;const q=document.getElementB
 const list=document.getElementById('list');
 list.addEventListener('click',e=>{
  const c=e.target.closest('[data-copy]');if(c){const g=groups().find(x=>x.key===c.dataset.copy);
-  const txt=`PYSS Fund – ${g.title} (as on ${fd(today())})\n`+sorted(g.items).map((m,i)=>`${i+1}. ${m.name} (ID ${m.id}${view!=='block'?', '+m.block:''}${view!=='country'?', '+m.country:''}) – ${dueLabel(due(m))}`).join('\n')+`\nTotal due: ${f(tot(g.items))}`;
+  const txt=`PYSS Fund – ${g.title} (as on ${fd(today())})\n`+sorted(g.items).map((m,i)=>`${i+1}. ${m.name} (ID ${m.id}${view!=='block'?', '+m.block:''}${view!=='country'?', '+m.country:''}${view!=='category'&&m.cats&&m.cats.length?', '+m.cats.join(' / '):''}) – ${dueLabel(due(m))}`).join('\n')+`\nTotal due: ${f(tot(g.items))}`;
   copyText(txt);return}
  if(payClick(e))return;
  if(e.target.closest('.det'))return;
@@ -191,11 +194,23 @@ function gvizTable(text){const s=text.indexOf('{'),e=text.lastIndexOf('}');if(s<
 async function fetchTab(tab){const url=`https://docs.google.com/spreadsheets/d/${encodeURIComponent(SHEET_ID)}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(tab)}&_=${Date.now()}`;
  const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('http');return r.text()}
 // Members tab: S/N | ... | Block | ...  -> {sn: block}; blank Block keeps the app's own value
+// Members tab: S/N plus optional Block (overrides the 25 Oct block) and Role/Category
+// (one or more categories, separated by commas, e.g. "Admin, Former admin 2024–2026").
+const ROLE_COLS=['role','roles','category','categories','group','groups','tag','tags','position'];
+function splitCats(s){return String(s||'').split(/[,;\n]/).map(x=>x.trim().slice(0,30)).filter(Boolean).slice(0,4)}
 function parseMembers(text){const j=gvizTable(text);const cols=j.table.cols.map(c=>(c.label||'').toLowerCase().replace(/[^a-z]/g,''));
- const iS=cols.findIndex(c=>['sn','sno','serial','serialno'].includes(c)),iB=cols.findIndex(c=>c==='block');
- if(iS<0||iB<0)return null;const B={};
- j.table.rows.forEach(r=>{const c=r.c||[];const sn=Math.round(cellNum(c[iS])),b=cellText(c[iB]);if(BYSN.has(sn)&&b)B[sn]=b.slice(0,40)});return B}
-function applyBlocks(B){M.forEach(m=>{m.block=(B&&B[m.sn])||m.block0})}
+ const iS=cols.findIndex(c=>['sn','sno','serial','serialno'].includes(c)),iB=cols.findIndex(c=>c==='block'),iR=cols.findIndex(c=>ROLE_COLS.includes(c));
+ if(iS<0||(iB<0&&iR<0))return null;const B={},R={};
+ j.table.rows.forEach(r=>{const c=r.c||[];const sn=Math.round(cellNum(c[iS]));if(!BYSN.has(sn))return;
+  const b=iB>=0?cellText(c[iB]):'';if(b)B[sn]=b.slice(0,40);
+  const cs=iR>=0?splitCats(cellText(c[iR])):[];if(cs.length)R[sn]=cs});
+ return {B,R}}
+// Accepts {B,R} or an older cached plain block map.
+function applyBlocks(x){const B=x&&(x.B||x.R)?x.B:x,R=x&&x.R||{};
+ M.forEach(m=>{m.block=(B&&B[m.sn])||m.block0;m.cats=R[m.sn]||[]})}
+const CAT_COL=['#7c3aed','#0f766e','#b45309','#be185d','#1d4ed8','#4d7c0f','#9f1239','#0369a1'];
+function catColor(c){let h=0;for(const ch of c)h=(h*31+ch.charCodeAt(0))>>>0;return CAT_COL[h%CAT_COL.length]}
+function catTags(m){return (m.cats||[]).map(c=>`<span class="cat" style="--cc:${catColor(c)}">${esc(c)}</span>`).join('')}
 function parseSheet(text){
  const j=gvizTable(text);
  const cols=j.table.cols.map(c=>(c.label||'').toLowerCase().replace(/[^a-z]/g,''));
