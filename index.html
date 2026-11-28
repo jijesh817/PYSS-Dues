@@ -31,6 +31,9 @@ h1{font-size:20px;margin:0 0 2px;color:#1e3a8a}.sub{color:var(--mut);font-size:1
 .ibtn:disabled{opacity:.6;cursor:default}
 .legend{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
 .lg{font-size:12px;padding:3px 9px;border-radius:999px;font-weight:600}
+.paidchip{border:1px solid #86efac;background:#fff;color:#166534;cursor:pointer;font-family:inherit}.paidchip.on{background:#16a34a;color:#fff;border-color:#16a34a}
+.kpi.k3{cursor:pointer}
+.gh .amt.paid{color:#16a34a}
 .tabs{display:flex;gap:6px;position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:5}
 .tab{flex:1;min-width:0;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:9px 6px;font-size:14px;font-weight:600;cursor:pointer}
 .tab.on{background:var(--acc);color:#fff;border-color:var(--acc);box-shadow:0 2px 8px rgba(37,99,235,.25)}
@@ -103,7 +106,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
  <div class="fubox" id="fuBox" hidden><label for="fuMsg">Follow-up message ( {name}, {due} and {link} are filled in )</label><textarea id="fuMsg"></textarea><div class="fubts"><button type="button" class="linkbtn" id="fuReset">Reset message</button></div></div>
  <div class="iosTip" id="iosTip" hidden>To install on iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>.</div>
 </div>
-<div class="legend"><span class="lg b4">Above 6,000</span><span class="lg b3">4,001–6,000</span><span class="lg b2">2,001–4,000</span><span class="lg b1">Up to 2,000</span><span class="lg b0">Cleared</span></div>
+<div class="legend"><span class="lg b4">Above 6,000</span><span class="lg b3">4,001–6,000</span><span class="lg b2">2,001–4,000</span><span class="lg b1">Up to 2,000</span><span class="lg b0">Cleared</span><button type="button" class="lg paidchip" id="paidChip">Paid since 25 Oct</button></div>
 <div class="tabs"><button class="tab on" data-v="country">Country</button><button class="tab" data-v="block">Block</button><button class="tab" data-v="category" hidden>Category</button><button class="tab" data-v="balance">Balance</button><button class="tab" data-v="all">All</button></div>
 <input type="search" id="q" placeholder="Search name, ID or block…">
 <div class="sortbar">Sort names by <select id="sort"><option value="due">Highest due first</option><option value="name">Name A–Z</option><option value="sn">S/N</option></select></div>
@@ -144,8 +147,10 @@ function dueLabel(d){return d>0?f(d):d<0?'Advance '+f(-d):'Cleared'}
 function kpis(){
  document.getElementById('kTot').textContent=f(M.reduce((a,m)=>a+Math.max(due(m),0),0));
  document.getElementById('kMem').textContent=M.filter(m=>due(m)>0).length+' / '+M.length;
- document.getElementById('kPaid').textContent=f(M.reduce((a,m)=>a+newPaid(m),0));}
-function sorted(a){const s=document.getElementById('sort').value;return [...a].sort(s==='name'?(x,y)=>x.name.localeCompare(y.name):s==='sn'?(x,y)=>x.sn-y.sn:(x,y)=>due(y)-due(x)||x.sn-y.sn)}
+ document.getElementById('kPaid').textContent=f(M.reduce((a,m)=>a+newPaid(m),0));
+ const n=M.filter(m=>newPaid(m)>0).length;document.getElementById('paidChip').textContent=`Paid since 25 Oct (${n})`;}
+function lastPay(m){return (PAY[m.sn]||[]).reduce((d,p)=>p.date>d?p.date:d,'')}
+function sorted(a){const s=document.getElementById('sort').value;if(view==='paid'&&s==='due')return [...a].sort((x,y)=>lastPay(y).localeCompare(lastPay(x))||newPaid(y)-newPaid(x));return [...a].sort(s==='name'?(x,y)=>x.name.localeCompare(y.name):s==='sn'?(x,y)=>x.sn-y.sn:(x,y)=>due(y)-due(x)||x.sn-y.sn)}
 function rowHTML(m,showCountry){const start=m.start,d=due(m),np=PAY[m.sn]||[],npt=newPaid(m);
  const yrs=YRS.map((y,i)=>{const p=m.pays[i];const c=y<start?'na':(p?'':'no');return `<div class="yr ${c}">${y}<b>${p?f(p):'–'}</b></div>`}).join('');
  const plist=np.length?`<div class="pays"><h4>Paid since 25 Oct</h4>${np.map(p=>`<div class="pl"><span class="pd">${esc(fd(p.date))}</span><span class="pn">${esc(p.note)}</span><span class="pa">+${f(p.amount)}</span></div>`).join('')}</div>`:'';
@@ -161,15 +166,18 @@ function groups(){const q=document.getElementById('q').value.trim().toLowerCase(
  if(view==='category'){const g={};L.forEach(m=>{const cs=(m.cats&&m.cats.length)?m.cats:['No category'];cs.forEach(c=>(g[c]=g[c]||[]).push(m))});
   return Object.entries(g).map(([k,v])=>({key:'r:'+k,title:k,sub:'',items:v})).sort((a,b)=>(a.title==='No category')-(b.title==='No category')||a.title.localeCompare(b.title))}
  if(view==='balance')return BANDS.map(([t,s,fn],i)=>({key:'b:'+t,title:t,sub:s,items:L.filter(m=>fn(due(m))),band:4-i})).filter(g=>g.items.length);
+ if(view==='paid'){const items=L.filter(m=>newPaid(m)>0);
+  return items.length?[{key:'paid',title:'Paid since 25 Oct',sub:'',items,paid:true}]:[]}
  return [{key:'all',title:'All members',sub:'',items:L}]}
 function tot(a){return a.reduce((s,m)=>s+Math.max(due(m),0),0)}
 function render(){kpis();const gs=groups();let ci=0;const q=document.getElementById('q').value.trim();
- document.getElementById('list').innerHTML=gs.length?gs.map(g=>{const isOpen=open.has(g.key)||q||view==='all';
-  const st=g.band!=null?`--gc:${BCOL[g.band][0]};--gb:${BCOL[g.band][1]}`:`--gc:${CCOL[ci++%CCOL.length]}`;return `<div class="grp ${isOpen?'open':''}" style="${st}" data-k="${esc(g.key)}"><div class="gh">${g.icon?`<span class="flag">${g.icon}</span>`:''}<div class="t"><b>${esc(g.title)}</b><span>${g.items.length} member${g.items.length>1?'s':''}${g.sub?' · '+g.sub:''}</span></div><span class="amt">${f(tot(g.items))}</span><span class="chev">›</span></div>
-  <div class="body">${sorted(g.items).map(m=>rowHTML(m,view!=='country')).join('')}<div class="act"><button class="btn" data-copy="${esc(g.key)}">Copy list</button></div></div></div>`}).join(''):'<div class="sub">No matches.</div>'}
+ document.getElementById('list').innerHTML=gs.length?gs.map(g=>{const isOpen=open.has(g.key)||q||view==='all'||view==='paid';
+  const st=g.band!=null?`--gc:${BCOL[g.band][0]};--gb:${BCOL[g.band][1]}`:`--gc:${CCOL[ci++%CCOL.length]}`;return `<div class="grp ${isOpen?'open':''}" style="${st}" data-k="${esc(g.key)}"><div class="gh">${g.icon?`<span class="flag">${g.icon}</span>`:''}<div class="t"><b>${esc(g.title)}</b><span>${g.items.length} member${g.items.length>1?'s':''}${g.sub?' · '+g.sub:''}</span></div><span class="amt${g.paid?' paid':''}">${g.paid?'+'+f(g.items.reduce((s,m)=>s+newPaid(m),0)):f(tot(g.items))}</span><span class="chev">›</span></div>
+  <div class="body">${sorted(g.items).map(m=>rowHTML(m,view!=='country')).join('')}<div class="act"><button class="btn" data-copy="${esc(g.key)}">Copy list</button></div></div></div>`}).join(''):(view==='paid'&&!document.getElementById('q').value.trim()?'<div class="sub">No payments recorded since 25 Oct yet.</div>':'<div class="sub">No matches.</div>')}
 const list=document.getElementById('list');
 list.addEventListener('click',e=>{
  const c=e.target.closest('[data-copy]');if(c){const g=groups().find(x=>x.key===c.dataset.copy);
+  if(g.paid){const txt=`PYSS Fund – Paid since 25 Oct (as on ${fd(today())})\n`+sorted(g.items).map((m,i)=>`${i+1}. ${m.name} (${m.block}) – ${f(newPaid(m))}${(PAY[m.sn]||[]).length?' · '+(PAY[m.sn]).map(p=>fd(p.date)).filter(Boolean).join(', '):''}`).join('\n')+`\nTotal collected: ${f(g.items.reduce((s,m)=>s+newPaid(m),0))}`;copyText(txt);return}
   const txt=`PYSS Fund – ${g.title} (as on ${fd(today())})\n`+sorted(g.items).map((m,i)=>`${i+1}. ${m.name} (ID ${m.id}${view!=='block'?', '+m.block:''}${view!=='country'?', '+m.country:''}${view!=='category'&&m.cats&&m.cats.length?', '+m.cats.join(' / '):''}) – ${dueLabel(due(m))}`).join('\n')+`\nTotal due: ${f(tot(g.items))}`;
   copyText(txt);return}
  if(payClick(e))return;
@@ -180,7 +188,10 @@ function copyText(txt){
  if(navigator.share&&/Android|iPhone|iPad/i.test(navigator.userAgent)){navigator.share({text:txt}).catch(()=>{});return}
  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast('Copied – paste into WhatsApp')).catch(()=>toast('Copy not allowed here'))}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{view=b.dataset.v;ls('pyssView',view);setTabs();render()});
+function togglePaid(){view=view==='paid'?(ls('pyssView')||'country'):'paid';if(view==='paid'){}setTabs();render();document.querySelector('.tabs').scrollIntoView({behavior:'smooth',block:'start'})}
+document.getElementById('paidChip').onclick=togglePaid;document.querySelector('.kpi.k3').onclick=togglePaid;
 function setTabs(){if(view==='category'&&!(typeof ADMIN!=='undefined'&&ADMIN))view='country';
+ const pc=document.getElementById('paidChip');if(pc)pc.classList.toggle('on',view==='paid');
  document.querySelectorAll('.tab').forEach(b=>{b.classList.toggle('on',b.dataset.v===view);if(b.dataset.v==='category')b.hidden=!(typeof ADMIN!=='undefined'&&ADMIN)})}
 document.getElementById('q').oninput=render;document.getElementById('sort').onchange=render;
 function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('on');setTimeout(()=>el.classList.remove('on'),1800)}
