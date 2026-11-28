@@ -31,11 +31,10 @@ h1{font-size:20px;margin:0 0 2px;color:#1e3a8a}.sub{color:var(--mut);font-size:1
 .ibtn:disabled{opacity:.6;cursor:default}
 .legend{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
 .lg{font-size:12px;padding:3px 9px;border-radius:999px;font-weight:600}
-.paidchip{border:1px solid #86efac;background:#fff;color:#166534;cursor:pointer;font-family:inherit}.paidchip.on{background:#16a34a;color:#fff;border-color:#16a34a}
 .kpi.k3{cursor:pointer}
 .gh .amt.paid{color:#16a34a}
-.tabs{display:flex;gap:6px;position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:5}
-.tab{flex:1;min-width:0;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:9px 6px;font-size:14px;font-weight:600;cursor:pointer}
+.tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:5}
+.tab{flex:1 0 auto;min-width:0;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:9px 6px;font-size:14px;font-weight:600;cursor:pointer}
 .tab.on{background:var(--acc);color:#fff;border-color:var(--acc);box-shadow:0 2px 8px rgba(37,99,235,.25)}
 input[type=search]{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:15px;margin:2px 0 10px}
 .grp{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--gc,#93c5fd);border-radius:14px;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,.05)}
@@ -106,8 +105,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
  <div class="fubox" id="fuBox" hidden><label for="fuMsg">Follow-up message ( {name}, {due} and {link} are filled in )</label><textarea id="fuMsg"></textarea><div class="fubts"><button type="button" class="linkbtn" id="fuReset">Reset message</button></div></div>
  <div class="iosTip" id="iosTip" hidden>To install on iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>.</div>
 </div>
-<div class="legend"><span class="lg b4">Above 6,000</span><span class="lg b3">4,001–6,000</span><span class="lg b2">2,001–4,000</span><span class="lg b1">Up to 2,000</span><span class="lg b0">Cleared</span><button type="button" class="lg paidchip" id="paidChip">Paid since 25 Oct</button></div>
-<div class="tabs"><button class="tab on" data-v="country">Country</button><button class="tab" data-v="block">Block</button><button class="tab" data-v="category" hidden>Category</button><button class="tab" data-v="balance">Balance</button><button class="tab" data-v="all">All</button></div>
+<div class="legend"><span class="lg b4">Above 6,000</span><span class="lg b3">4,001–6,000</span><span class="lg b2">2,001–4,000</span><span class="lg b1">Up to 2,000</span><span class="lg b0">Cleared</span></div>
+<div class="tabs"><button class="tab on" data-v="country">Country</button><button class="tab" data-v="block">Block</button><button class="tab" data-v="category" hidden>Category</button><button class="tab" data-v="balance">Balance</button><button class="tab" data-v="all">All</button><button class="tab" data-v="paid" id="paidTab">Paid</button></div>
 <input type="search" id="q" placeholder="Search name, ID or block…">
 <div class="sortbar">Sort names by <select id="sort"><option value="due">Highest due first</option><option value="name">Name A–Z</option><option value="sn">S/N</option></select></div>
 <div id="list"></div>
@@ -148,7 +147,7 @@ function kpis(){
  document.getElementById('kTot').textContent=f(M.reduce((a,m)=>a+Math.max(due(m),0),0));
  document.getElementById('kMem').textContent=M.filter(m=>due(m)>0).length+' / '+M.length;
  document.getElementById('kPaid').textContent=f(M.reduce((a,m)=>a+newPaid(m),0));
- const n=M.filter(m=>newPaid(m)>0).length;document.getElementById('paidChip').textContent=`Paid since 25 Oct (${n})`;}
+ const n=M.filter(m=>newPaid(m)>0).length;document.getElementById('paidTab').textContent=`Paid (${n})`;}
 function lastPay(m){return (PAY[m.sn]||[]).reduce((d,p)=>p.date>d?p.date:d,'')}
 function sorted(a){const s=document.getElementById('sort').value;if(view==='paid'&&s==='due')return [...a].sort((x,y)=>lastPay(y).localeCompare(lastPay(x))||newPaid(y)-newPaid(x));return [...a].sort(s==='name'?(x,y)=>x.name.localeCompare(y.name):s==='sn'?(x,y)=>x.sn-y.sn:(x,y)=>due(y)-due(x)||x.sn-y.sn)}
 function rowHTML(m,showCountry){const start=m.start,d=due(m),np=PAY[m.sn]||[],npt=newPaid(m);
@@ -188,10 +187,9 @@ function copyText(txt){
  if(navigator.share&&/Android|iPhone|iPad/i.test(navigator.userAgent)){navigator.share({text:txt}).catch(()=>{});return}
  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast('Copied – paste into WhatsApp')).catch(()=>toast('Copy not allowed here'))}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{view=b.dataset.v;ls('pyssView',view);setTabs();render()});
-function togglePaid(){view=view==='paid'?(ls('pyssView')||'country'):'paid';if(view==='paid'){}setTabs();render();document.querySelector('.tabs').scrollIntoView({behavior:'smooth',block:'start'})}
-document.getElementById('paidChip').onclick=togglePaid;document.querySelector('.kpi.k3').onclick=togglePaid;
+function togglePaid(){view='paid';ls('pyssView',view);setTabs();render();document.querySelector('.tabs').scrollIntoView({behavior:'smooth',block:'start'})}
+document.querySelector('.kpi.k3').onclick=togglePaid;
 function setTabs(){if(view==='category'&&!(typeof ADMIN!=='undefined'&&ADMIN))view='country';
- const pc=document.getElementById('paidChip');if(pc)pc.classList.toggle('on',view==='paid');
  document.querySelectorAll('.tab').forEach(b=>{b.classList.toggle('on',b.dataset.v===view);if(b.dataset.v==='category')b.hidden=!(typeof ADMIN!=='undefined'&&ADMIN)})}
 document.getElementById('q').oninput=render;document.getElementById('sort').onchange=render;
 function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('on');setTimeout(()=>el.classList.remove('on'),1800)}
